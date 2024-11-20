@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beatz Admin Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              orange: {
+                500: "#f97316",
+                600: "#ea580c",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .bg-darker {
+          background-color: #0a0a0a;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-black text-white">
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <div class="w-64 bg-[#111] p-4">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold">
+            <span class="text-orange-500">b</span>eatz
+          </h1>
+        </div>
+        <nav class="space-y-2">
+          <% const navItems = [ { icon: 'bar-chart-3', text: 'Dashboard' }, {
+          icon: 'box', text: 'Products' }, { icon: 'users', text: 'Customers' },
+          { icon: 'shopping-cart', text: 'Orders' }, { icon: 'gift', text:
+          'Coupons' }, { icon: 'layout-grid', text: 'Category' }, { icon:
+          'percent', text: 'Discounts' }, { icon: 'package', text: 'Banner' }, {
+          icon: 'bar-chart-3', text: 'Sales Report' } ] %> <%
+          navItems.forEach(item => { %>
+          <button
+            class="w-full flex justify-start items-center gap-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-[#222] rounded-md transition-colors duration-200"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
+            </svg>
+            <%= item.text %>
+          </button>
+          <% }) %>
+          <button
+            class="w-full flex justify-start items-center gap-2 px-4 py-2 text-red-500 hover:text-red-400 hover:bg-[#222] rounded-md transition-colors duration-200"
+          >
+            <svg
+              class="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            Logout
+          </button>
+        </nav>
+      </div>
+
+      <!-- Main Content -->
+      <div class="flex-1 p-8 bg-darker">
+        <div class="flex justify-between items-center mb-8">
+          <!-- Trigger Modal -->
+          <button
+            onclick="toggleModal('add')"
+            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+          >
+            Add new Product
+          </button>
+          <div class="relative">
+            <input
+              class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="Search for products"
+            />
+          </div>
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-[#111] rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-800">
+                <th class="text-left p-4 text-orange-500">Sl. No</th>
+                <th class="text-left p-4 text-orange-500">Product</th>
+                <th class="text-left p-4 text-orange-500">Price</th>
+                <th class="text-left p-4 text-orange-500">Stock</th>
+                <th class="text-left p-4 text-orange-500">Category</th>
+                <th class="text-left p-4 text-orange-500">Status</th>
+                <th class="text-left p-4 text-orange-500">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% products.forEach((product,index) => { %>
+              <tr class="border-b border-gray-800">
+                <td class="p-4"><%= index + 1 %></td>
+                <td class="p-4"><%= product.product_name %></td>
+                <td class="p-4">₹ <%= product.price %></td>
+                <td class="p-4">
+                  <span class="bg-[#222] px-3 py-1 rounded-full"
+                    ><%= product.stock %></span
+                  >
+                </td>
+                <td class="p-4"><%= product.category.name %></td>
+                <td class="p-4">
+                  <span
+                    class="<%= product.category.isBlocked ? 'text-red-500' : 'text-green-500' %> font-semibold"
+                  >
+                    <%= product.category.isBlocked ? 'Inactive' : 'Active' %>
+                  </span>
+                </td>
+                <td class="p-4">
+                  <div class="flex gap-2">
+                    <button
+                      onclick="editProduct('<%= product.id %>')"
+                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onclick="deleteProduct('<%= product.id %>')"
+                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center gap-2 mt-4">
+          <button
+            class="px-4 py-2 text-gray-400 border border-gray-800 rounded-md hover:bg-gray-800 transition-colors duration-200"
+          >
+            Previous
+          </button>
+          <% [1, 2, 3, '...', 67, 68].forEach(page => { %>
+          <button
+            class="px-4 py-2 <%= currentPage === page ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'text-gray-400 border border-gray-800 hover:bg-gray-800' %> rounded-md transition-colors duration-200"
+          >
+            <%= page %>
+          </button>
+          <% }) %>
+          <button
+            class="px-4 py-2 text-gray-400 border border-gray-800 rounded-md hover:bg-gray-800 transition-colors duration-200"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div
+      id="productModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center"
+    >
+      <div class="bg-[#111] text-white p-4 rounded-lg w-[350px]">
+        <h2 id="modalTitle" class="text-lg font-semibold text-orange-500 mb-3">
+          Add Product
+        </h2>
+        <form
+          id="productForm"
+          action="/admin/products"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <input type="hidden" id="productId" name="productId" />
+          <!-- Product Name -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1"
+              >Product Name</label
+            >
+            <input
+              type="text"
+              id="productName"
+              name="product_name"
+              class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm"
+              required
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1"
+              >Description</label
+            >
+            <textarea
+              id="productDescription"
+              name="description"
+              class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm h-16"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Category</label>
+            <select
+              id="productCategory"
+              name="category"
+              class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm"
+              required
+            >
+              <option value="">Select Category</option>
+              <% categories.forEach(category => { %>
+              <option value="<%= category.id %>"><%= category.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Price (₹)</label>
+            <input
+              type="number"
+              id="productPrice"
+              name="price"
+              class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm"
+              required
+            />
+          </div>
+
+          <div
+            id="cropperModal"
+            class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center"
+          >
+            <div class="bg-[#111] text-white p-4 rounded-lg w-[90%] max-w-lg">
+              <h2 class="text-lg font-semibold text-orange-500 mb-3">
+                Crop Image
+              </h2>
+              <div
+                class="relative w-full aspect-square bg-black overflow-hidden"
+              >
+                <img
+                  id="cropperImage"
+                  src=""
+                  alt="Image for cropping"
+                  class="w-full"
+                />
+              </div>
+              <div class="flex justify-between mt-4">
+                <button
+                  onclick="closeCropper()"
+                  class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onclick="cropImage()"
+                  class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md"
+                >
+                  Crop & Save
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Stock</label>
+            <input
+              type="number"
+              id="productStock"
+              name="stock"
+              class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm"
+              required
+            />
+          </div>
+          <!-- Product Images -->
+          <div class="mb-4">
+            <label class="block text-sm text-orange-500 mb-2"
+              >Images (3 minimum)</label
+            >
+            <div class="flex gap-2">
+              <div
+                class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden"
+              >
+                <input
+                  type="file"
+                  name="product_images"
+                  accept="image/*"
+                  class="absolute inset-0 opacity-0 cursor-pointer"
+                  onchange="previewImage(event, 0)"
+                />
+                <img
+                  id="imagePreview0"
+                  class="w-full h-full object-cover hidden"
+                  alt="Preview"
+                />
+                <p
+                  id="placeholder0"
+                  class="flex justify-center items-center text-gray-500 text-sm h-full"
+                >
+                  Upload
+                </p>
+              </div>
+              <div
+                class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden"
+              >
+                <input
+                  type="file"
+                  name="product_images"
+                  accept="image/*"
+                  class="absolute inset-0 opacity-0 cursor-pointer"
+                  onchange="previewImage(event, 1)"
+                />
+                <img
+                  id="imagePreview1"
+                  class="w-full h-full object-cover hidden"
+                  alt="Preview"
+                />
+                <p
+                  id="placeholder1"
+                  class="flex justify-center items-center text-gray-500 text-sm h-full"
+                >
+                  Upload
+                </p>
+              </div>
+              <div
+                class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden"
+              >
+                <input
+                  type="file"
+                  name="product_images"
+                  accept="image/*"
+                  class="absolute inset-0 opacity-0 cursor-pointer"
+                  onchange="previewImage(event, 2)"
+                />
+                <img
+                  id="imagePreview2"
+                  class="w-full h-full object-cover hidden"
+                  alt="Preview"
+                />
+                <p
+                  id="placeholder2"
+                  class="flex justify-center items-center text-gray-500 text-sm h-full"
+                >
+                  Upload
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-4 flex justify-between gap-2">
+            <button
+              type="button"
+              onclick="toggleModal()"
+              class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              id="submitButton"
+              class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+            >
+              Add Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function toggleModal(mode = "") {
+        const modal = document.getElementById("productModal");
+        modal.classList.toggle("hidden");
+
+        if (mode === "add") {
+          document.getElementById("modalTitle").textContent = "Add Product";
+          document.getElementById("submitButton").textContent = "Add Product";
+          document.getElementById("productForm").reset();
+          document.getElementById("productId").value = "";
+        }
+      }
+
+      function editProduct(productId) {
+        fetch(`/admin/products/${productId}`)
+          .then((response) => response.json())
+          .then((product) => {
+            if (product) {
+              // Populate form fields with product details
+              document.getElementById("productId").value = product._id; // Make sure to use `_id`
+              document.getElementById("productName").value =
+                product.product_name;
+              document.getElementById("productDescription").value =
+                product.description;
+              document.getElementById("productCategory").value =
+                product.category_id; // Ensure correct field
+              document.getElementById("productPrice").value = product.price;
+              document.getElementById("productStock").value = product.stock;
+
+              // Update modal title and button
+              document.getElementById("modalTitle").textContent =
+                "Edit Product";
+              document.getElementById("submitButton").textContent =
+                "Update Product";
+
+              // Open the modal
+              toggleModal();
+            } else {
+              alert("Product not found.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching product:", error);
+            alert("Failed to load product data.");
+          });
+      }
+
+      function deleteProduct(productId) {
+        if (confirm("Are you sure you want to remove this product?")) {
+          fetch(`/admin/products/${productId}`, { method: "DELETE" })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                // Remove the product from the table or refresh the page
+                location.reload();
+              } else {
+                alert("Failed to remove the product. Please try again.");
+              }
+            });
+        }
+      }
+
+      document
+        .getElementById("productForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const productId = formData.get("productId");
+          const method = productId ? "PUT" : "POST";
+          console.log(method);
+
+          const url = productId
+            ? `/admin/products/edit/${productId}`
+            : "/admin/products";
+          console.log(method);
+
+          fetch(url, {
+            method: method,
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.success) {
+                toggleModal();
+                location.reload();
+              } else {
+                alert("Failed to save the product. Please try again.");
+              }
+            });
+        });
+
+      function previewImage(event, index) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        if (file) {
+          reader.onload = function (e) {
+            const imagePreview = document.getElementById(
+              `imagePreview${index}`
+            );
+            const placeholder = document.getElementById(`placeholder${index}`);
+
+            imagePreview.src = e.target.result;
+            imagePreview.classList.remove("hidden");
+            placeholder.classList.add("hidden");
+          };
+
+          reader.readAsDataURL(file);
+        }
+      }
+
+      let cropper;
+      let activeInput;
+
+      function previewImage(event, index) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        if (file) {
+          reader.onload = function (e) {
+            const cropperImage = document.getElementById("cropperImage");
+            cropperImage.src = e.target.result;
+
+            activeInput = event.target; // Store reference to the input
+            document.getElementById("cropperModal").classList.remove("hidden");
+
+            // Initialize cropper when the modal opens
+            if (cropper) {
+              cropper.destroy(); // Destroy previous instance if it exists
+            }
+            cropper = new Cropper(cropperImage, {
+              aspectRatio: 1, // Change the aspect ratio as needed
+              viewMode: 2,
+              autoCropArea: 1,
+              movable: true,
+              zoomable: true,
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function cropImage() {
+        if (!cropper) return;
+
+        const croppedCanvas = cropper.getCroppedCanvas({
+          width: 300, // Set the desired output size
+          height: 300,
+        });
+
+        const croppedImage = croppedCanvas.toDataURL(); // Convert canvas to base64
+        const inputIndex = [
+          ...document.getElementsByName("product_images"),
+        ].indexOf(activeInput);
+        const preview = document.getElementById(`imagePreview${inputIndex}`);
+        const placeholder = document.getElementById(`placeholder${inputIndex}`);
+
+        // Update the preview with the cropped image
+        preview.src = croppedImage;
+        preview.classList.remove("hidden");
+        placeholder.classList.add("hidden");
+
+        // Convert base64 to blob and assign it back to the input
+        croppedCanvas.toBlob((blob) => {
+          const file = new File([blob], "cropped-image.png", {
+            type: "image/png",
+          });
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          activeInput.files = dataTransfer.files;
+        });
+
+        // Close cropper modal
+        closeCropper();
+      }
+
+      function closeCropper() {
+        document.getElementById("cropperModal").classList.add("hidden");
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
+      }
+    </script>
+  </body>
+</html>

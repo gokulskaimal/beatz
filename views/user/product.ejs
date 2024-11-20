@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beatz Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-black text-white font-sans">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 bg-darker">
+        <h1 class="text-2xl font-bold text-orange-500">beatz</h1>
+        <input
+            type="text"
+            placeholder="What are you looking for?"
+            class="bg-gray-800 text-sm text-gray-300 px-4 py-2 rounded-lg focus:outline-none"
+        />
+        <div class="flex gap-4 items-center">
+            <a href="#" class="text-gray-300">Cart</a>
+            <a href="#" class="text-gray-300">Profile</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4">
+        <!-- Product Section -->
+        <section class="flex flex-col md:flex-row items-center gap-8 bg-darker p-6 rounded-lg">
+            <!-- Product Image -->
+            <div class="flex-1">
+                <img
+                    src="/placeholder.svg?height=300&width=300"
+                    alt="Beats Fit Pro"
+                    class="w-full h-auto rounded-lg"
+                />
+            </div>
+
+            <!-- Product Details -->
+            <div class="flex-1">
+                <h2 class="text-4xl font-bold mb-2">Beats Fit Pro</h2>
+                <p class="text-gray-400 text-sm mb-4">True Wireless Noise Cancelling Earbuds</p>
+                <div class="mb-4">
+                    <span class="text-orange-500 text-2xl font-bold">₹22000</span>
+                    <span class="text-gray-500 line-through ml-2">₹32400</span>
+                    <span class="text-green-500 ml-2">32% off</span>
+                </div>
+                <p class="mb-4">Color: <span class="font-bold">Beats Black</span></p>
+                <ul class="list-disc list-inside text-sm text-gray-400 mb-4">
+                    <li>Express Delivery</li>
+                    <li>Free Shipping</li>
+                    <li>Convenient local pick-up</li>
+                </ul>
+                <button class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600">
+                    Add to Buy
+                </button>
+            </div>
+        </section>
+
+        <!-- Similar Products Section -->
+        <section class="mt-12">
+            <h3 class="text-2xl font-bold mb-4">Similar Products</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Product Card -->
+                <% for (let i = 0; i < 4; i++) { %>
+                <div class="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+                    <img
+                        src="/placeholder.svg?height=150&width=150"
+                        alt="Beats Product"
+                        class="w-full h-auto mb-4"
+                    />
+                    <h4 class="font-semibold mb-2 text-lg">Beats Studio Pro X Kim</h4>
+                    <p class="text-orange-500 font-bold text-sm">₹21900</p>
+                </div>
+                <% } %>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-darker p-6">
+        <div class="flex flex-col md:flex-row justify-between gap-8">
+            <!-- Subscribe Section -->
+            <div>
+                <h4 class="font-bold mb-2">Subscribe</h4>
+                <p class="text-gray-400 text-sm mb-4">Get 10% off your first order</p>
+                <div class="flex">
+                    <input
+                        type="text"
+                        placeholder="Enter your email"
+                        class="flex-1 bg-gray-800 text-white px-4 py-2 rounded-l-lg focus:outline-none"
+                    />
+                    <button class="bg-orange-500 text-white px-4 py-2 rounded-r-lg hover:bg-orange-600">
+                        Subscribe
+                    </button>
+                </div>
+            </div>
+
+            <!-- Links -->
+            <div class="grid grid-cols-2 gap-8 text-sm text-gray-400">
+                <div>
+                    <h5 class="font-bold mb-2">Support</h5>
+                    <ul>
+                        <li><a href="#" class="hover:text-white">FAQs</a></li>
+                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-2">Quick Links</h5>
+                    <ul>
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p class="text-gray-500 text-sm mt-4 text-center">
+            © Copyright Beatz 2024. All rights reserved.
+        </p>
+    </footer>
+</body>
+</html>

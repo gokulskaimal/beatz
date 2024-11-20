@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Customers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            yellow: {
+              500: '#FFA500',
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-black text-white">
+  <!-- Sidebar -->
+  <div class="flex">
+    <aside class="w-64 bg-gray-900 min-h-screen">
+      <div class="py-5 text-center">
+        <h1 class="text-yellow-500 text-2xl font-bold">beatz</h1>
+      </div>
+      <nav class="mt-10">
+        <ul class="space-y-2">
+          <li><a href="/admin/dashboard" class="flex items-center p-3 hover:bg-gray-800"><span>Dashboard</span></a></li>
+          <li><a href="/admin/products" class="flex items-center p-3 hover:bg-gray-800"><span>Products</span></a></li>
+          <li><a href="/admin/users" class="flex items-center p-3 bg-gray-800"><span>Customers</span></a></li>
+          <li><a href="/admin/orders" class="flex items-center p-3 hover:bg-gray-800"><span>Orders</span></a></li>
+          <li><a href="/admin/logout" class="flex items-center p-3 text-red-500 hover:bg-gray-800"><span>Logout</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <header class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Customers</h2>
+        <input
+          type="text"
+          placeholder="Search for Customers"
+          id="search"
+          class="bg-gray-800 text-gray-400 p-2 rounded-lg w-1/3 focus:ring-2 focus:ring-yellow-500"
+        />
+      </header>
+      <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-gray-700">
+              <th class="p-3">Id</th>
+              <th class="p-3">Name</th>
+              <th class="p-3">Email</th>
+              <th class="p-3">Mobile</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 text-center">Edit</th>
+            </tr>
+          </thead>
+          <tbody id="userTable">
+            <% users.forEach((user, index) => { %>
+              <tr class="border-t border-gray-700">
+                <td class="p-3"><%= index + 1 %></td>
+                <td class="p-3"><%= user.firstName %></td>
+                <td class="p-3"><%= user.email %></td>
+                <td class="p-3"><%= user.phone %></td>
+                <td class="p-3">
+                  <% if (user.isBlocked) { %>
+                    <span class="bg-red-500 text-black px-2 py-1 rounded">Blocked</span>
+                  <% } else { %>
+                    <span class="bg-green-500 text-black px-2 py-1 rounded">Active</span>
+                  <% } %>
+                </td>
+                <td class="p-3 text-center">
+                  <button
+                    onclick="toggleBlock('<%= user._id %>', '<%= user.isBlocked ? 'Unblock' : 'Block' %>')"
+                    class="<%= user.isBlocked ? 'bg-green-500' : 'bg-red-500' %> text-black px-4 py-1 rounded"
+                  >
+                    <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                  </button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-4">
+        <button
+          onclick="paginate('<%= currentPage - 1 %>')"
+          class="bg-gray-700 p-2 rounded <%= currentPage <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>"
+          <%= currentPage <= 1 ? 'disabled' : '' %>
+        >
+          Previous
+        </button>
+        <div class="text-gray-400">Page <%= currentPage %> of <%= totalPages %></div>
+        <button
+          onclick="paginate('<%= currentPage + 1 %>')"
+          class="bg-gray-700 p-2 rounded <%= currentPage >= totalPages ? 'opacity-50 cursor-not-allowed' : '' %>"
+          <%= currentPage >= totalPages ? 'disabled' : '' %>
+        >
+          Next
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    async function toggleBlock(userId, action) {
+      const url = `/admin/users/${action}/${userId}`;
+
+      try {
+        const response = await fetch(url, { method: 'PUT' });
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire('Success!', result.message, 'success').then(() => {
+            location.reload(); // Reload the page to reflect changes
+          });
+        } else {
+          Swal.fire('Error!', result.message, 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error!', 'Something went wrong.', 'error');
+      }
+    }
+
+    async function paginate(page) {
+      const search = document.getElementById('search').value;
+      window.location.href = `/admin/users?page=${page}&search=${search}`;
+    }
+  </script>
+</body>
+</html>
