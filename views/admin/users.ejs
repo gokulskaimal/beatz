@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,104 +12,157 @@
       theme: {
         extend: {
           colors: {
-            yellow: {
-              500: '#FFA500',
+            orange: {
+              500: '#f97316',
+              600: '#ea580c',
             },
           },
         },
       },
-    };
+    }
   </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+        .bg-darker { background-color: #0a0a0a; }
+    }
+</style>
 </head>
-<body class="bg-black text-white">
-  <!-- Sidebar -->
-  <div class="flex">
-    <aside class="w-64 bg-gray-900 min-h-screen">
-      <div class="py-5 text-center">
-        <h1 class="text-yellow-500 text-2xl font-bold">beatz</h1>
+
+<body class="min-h-screen bg-black text-white">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-[#111] p-4">
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold">
+          <span class="text-orange-500">b</span>eatz
+        </h1>
       </div>
-      <nav class="mt-10">
-        <ul class="space-y-2">
-          <li><a href="/admin/dashboard" class="flex items-center p-3 hover:bg-gray-800"><span>Dashboard</span></a></li>
-          <li><a href="/admin/products" class="flex items-center p-3 hover:bg-gray-800"><span>Products</span></a></li>
-          <li><a href="/admin/users" class="flex items-center p-3 bg-gray-800"><span>Customers</span></a></li>
-          <li><a href="/admin/orders" class="flex items-center p-3 hover:bg-gray-800"><span>Orders</span></a></li>
-          <li><a href="/admin/logout" class="flex items-center p-3 text-red-500 hover:bg-gray-800"><span>Logout</span></a></li>
-        </ul>
+      <nav class="space-y-2">
+        <% const navItems=[ { icon: 'bar-chart-3' , text: 'Dashboard' , url: '/admin/dashboard' }, { icon: 'box' ,
+          text: 'Products' , url: '/admin/products' }, { icon: 'users' , text: 'Customers' , url: '/admin/users' }, {
+          icon: 'shopping-cart' , text: 'Orders' , url: '/admin/orders' }, { icon: 'gift' , text: 'Coupons' ,
+          url: '/admin/coupons' }, { icon: 'layout-grid' , text: 'Category' , url: '/admin/categories' }, {
+          icon: 'percent' , text: 'Discounts' , url: '/admin/discounts' }, { icon: 'package' , text: 'Banner' ,
+          url: '/admin/banners' }, { icon: 'bar-chart-3' , text: 'Sales Report' , url: '/admin/sales-report' } ] %>
+          <% navItems.forEach(item=> { %>
+            <a href="<%= item.url %>"
+              class="w-full flex justify-start items-center gap-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-[#222] rounded-md transition-colors duration-200">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+              <%= item.text %>
+            </a>
+            <% }) %>
+              <a href="/admin/logout"
+                class="w-full flex justify-start items-center gap-2 px-4 py-2 text-red-500 hover:text-red-400 hover:bg-[#222] rounded-md transition-colors duration-200">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </a>
       </nav>
-    </aside>
+    </div>
 
     <!-- Main Content -->
-    <main class="flex-1 p-6">
-      <header class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Customers</h2>
-        <input
-          type="text"
-          placeholder="Search for Customers"
-          id="search"
-          class="bg-gray-800 text-gray-400 p-2 rounded-lg w-1/3 focus:ring-2 focus:ring-yellow-500"
-        />
-      </header>
-      <div class="bg-gray-800 rounded-lg shadow overflow-hidden">
-        <table class="w-full text-left">
+    <div class="flex-1 p-8 bg-darker">
+      <div class="flex justify-between items-center mb-8">
+        <button
+          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors hidden duration-200">
+          Add New Category
+        </button>
+        <div class="relative">
+          <input
+            class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Search for users" />
+        </div>
+      </div>
+      <!-- Users Table -->
+      <div class="bg-[#111] rounded-lg overflow-hidden">
+        <table class="w-full">
           <thead>
-            <tr class="bg-gray-700">
-              <th class="p-3">Id</th>
-              <th class="p-3">Name</th>
-              <th class="p-3">Email</th>
-              <th class="p-3">Mobile</th>
-              <th class="p-3">Status</th>
-              <th class="p-3 text-center">Edit</th>
+            <tr class="border-b border-gray-800">
+              <th class="text-left p-4 text-orange-500">Sl. No.</th>
+              <th class="text-left p-4 text-orange-500">Name</th>
+              <th class="text-left p-4 text-orange-500">Email</th>
+              <th class="text-left p-4 text-orange-500">Mobile</th>
+              <th class="text-left p-4 text-orange-500">Status</th>
             </tr>
           </thead>
-          <tbody id="userTable">
-            <% users.forEach((user, index) => { %>
-              <tr class="border-t border-gray-700">
-                <td class="p-3"><%= index + 1 %></td>
-                <td class="p-3"><%= user.firstName %></td>
-                <td class="p-3"><%= user.email %></td>
-                <td class="p-3"><%= user.phone %></td>
-                <td class="p-3">
+          <tbody>
+            <% users.forEach((user, index)=> { %>
+              <tr class="border-b border-gray-800">
+                <td class="p-4">
+                  <%= index + 1 %>
+                </td>
+                <td class="p-4">
+                  <%= user.firstName %>
+                </td>
+                <td class="p-4">
+                  <%= user.email %>
+                </td>
+                <td class="p-4">
+                  <%= user.phone %>
+                </td>
+                <td class="p-4">
                   <% if (user.isBlocked) { %>
                     <span class="bg-red-500 text-black px-2 py-1 rounded">Blocked</span>
-                  <% } else { %>
-                    <span class="bg-green-500 text-black px-2 py-1 rounded">Active</span>
-                  <% } %>
+                    <% } else { %>
+                      <span class="bg-green-500 text-black px-2 py-1 rounded">Active</span>
+                      <% } %>
                 </td>
-                <td class="p-3 text-center">
-                  <button
-                    onclick="toggleBlock('<%= user._id %>', '<%= user.isBlocked ? 'Unblock' : 'Block' %>')"
-                    class="<%= user.isBlocked ? 'bg-green-500' : 'bg-red-500' %> text-black px-4 py-1 rounded"
-                  >
-                    <%= user.isBlocked ? 'Unblock' : 'Block' %>
-                  </button>
+                <td class="p-4">
+                  <div class="flex gap-2">
+                    <button onclick="toggleBlock('<%= user._id %>', '<%= user.isBlocked ? 'Unblock' : 'Block' %>')"
+                      class="<%= user.isBlocked ? 'bg-green-500' : 'bg-red-500' %> text-black px-4 py-1 rounded">
+                      <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                    </button>
+                  </div>
                 </td>
               </tr>
-            <% }) %>
+              <% }) %>
           </tbody>
         </table>
       </div>
-      <div class="flex justify-between items-center mt-4">
-        <button
-          onclick="paginate('<%= currentPage - 1 %>')"
-          class="bg-gray-700 p-2 rounded <%= currentPage <= 1 ? 'opacity-50 cursor-not-allowed' : '' %>"
-          <%= currentPage <= 1 ? 'disabled' : '' %>
-        >
-          Previous
-        </button>
-        <div class="text-gray-400">Page <%= currentPage %> of <%= totalPages %></div>
-        <button
-          onclick="paginate('<%= currentPage + 1 %>')"
-          class="bg-gray-700 p-2 rounded <%= currentPage >= totalPages ? 'opacity-50 cursor-not-allowed' : '' %>"
-          <%= currentPage >= totalPages ? 'disabled' : '' %>
-        >
-          Next
-        </button>
-      </div>
-    </main>
+    </div>
+  </div>
+
+  <div class="mt-4 flex justify-center">
+    <nav class="inline-flex">
+      <% if (currentPage> 1) { %>
+        <a href="/admin/categories?page=<%= currentPage - 1 %>"
+          class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+        <% } %>
+          <% for (let i=1; i <=totalPages; i++) { %>
+            <a href="/admin/categories?page=<%= i %>"
+              class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+              <%= i %>
+            </a>
+            <% } %>
+              <% if (currentPage < totalPages) { %>
+                <a href="/admin/categories?page=<%= currentPage + 1 %>"
+                  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                <% } %>
+    </nav>
   </div>
 
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const message = document.getElementById("message").value;
+        if (message) {
+            const messageBox = document.createElement("div");
+            messageBox.textContent = message;
+            messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
+            document.body.insertBefore(messageBox, document.body.firstChild);
+
+            // Auto-hide the message after 5 seconds
+            setTimeout(() => {
+                messageBox.remove();
+            }, 5000);
+        }
+    });
     async function toggleBlock(userId, action) {
       const url = `/admin/users/${action}/${userId}`;
 
@@ -135,4 +189,5 @@
     }
   </script>
 </body>
+
 </html>

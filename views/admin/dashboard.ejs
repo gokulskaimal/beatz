@@ -5,48 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Beatz</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker { background-color: #0a0a0a; }
+        }
+    </style>
 </head>
-<body class="bg-black text-white">
+<body  class="min-h-screen bg-black text-white">
   <!-- Sidebar and Header -->
   <div class="flex">
     <!-- Sidebar -->
-    <div class="w-64 bg-[#111] p-4">
+    <div class="w-64 bg-darker p-4">
       <div class="mb-8">
         <h1 class="text-2xl font-bold">
           <span class="text-orange-500">b</span>eatz
         </h1>
       </div>
       <nav class="space-y-2">
-        <% const navItems = [
-            { icon: 'bar-chart-3', text: 'Dashboard' },
-            { icon: 'box', text: 'Products' },
-            { icon: 'users', text: 'Customers' },
-            { icon: 'shopping-cart', text: 'Orders' },
-            { icon: 'gift', text: 'Coupons' },
-            { icon: 'layout-grid', text: 'Category' },
-            { icon: 'percent', text: 'Discounts' },
-            { icon: 'package', text: 'Banner' },
-            { icon: 'bar-chart-3', text: 'Sales Report' }
-        ] %>
-        <% navItems.forEach(item => { %>
-            <button class="w-full flex justify-start items-center gap-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-[#222] rounded-md transition-colors duration-200">
-                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        <% const navItems=[ { icon: 'bar-chart-3' , text: 'Dashboard' , url: '/admin/dashboard' }, { icon: 'box' ,
+          text: 'Products' , url: '/admin/products' }, { icon: 'users' , text: 'Customers' , url: '/admin/users' },
+          { icon: 'shopping-cart' , text: 'Orders' , url: '/admin/orders' }, { icon: 'gift' , text: 'Coupons' ,
+          url: '/admin/coupons' }, { icon: 'layout-grid' , text: 'Category' , url: '/admin/categories' }, {
+          icon: 'percent' , text: 'Discounts' , url: '/admin/discounts' }, { icon: 'package' , text: 'Banner' ,
+          url: '/admin/banners' }, { icon: 'bar-chart-3' , text: 'Sales Report' , url: '/admin/sales-report' } ] %>
+          <% navItems.forEach(item=> { %>
+            <a href="<%= item.url %>"
+              class="w-full flex justify-start items-center gap-2 px-4 py-2 text-gray-300 hover:text-white hover:bg-[#222] rounded-md transition-colors duration-200">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+              <%= item.text %>
+            </a>
+            <% }) %>
+              <a href="/admin/logout"
+                class="w-full flex justify-start items-center gap-2 px-4 py-2 text-red-500 hover:text-red-400 hover:bg-[#222] rounded-md transition-colors duration-200">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <%= item.text %>
-            </button>
-        <% }) %>
-        <button class="w-full flex justify-start items-center gap-2 px-4 py-2 text-red-500 hover:text-red-400 hover:bg-[#222] rounded-md transition-colors duration-200">
-            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Logout
-        </button>
+                Logout
+              </a>
       </nav>
     </div>
 
     <!-- Main Content -->
-    <main class="flex-1 bg-gray-800 p-6">
+    <main class="flex-1 bg-black-800 p-6">
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-xl font-bold text-yellow-500">Sales Summary</h1>
@@ -78,12 +98,12 @@
       </div>
 
       <!-- Chart Section -->
-      <div class="bg-gray-700 rounded-lg p-4">
+      <!-- <div class="bg-gray-700 rounded-lg p-4">
         <h3 class="text-yellow-500 text-lg font-bold mb-4">Orders Update</h3>
         <canvas id="orderChart" class="w-full h-64"></canvas>
       </div>
     </main>
-  </div>
+  </div> -->
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>

@@ -4,8 +4,9 @@ const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true },
-  password: { type: String, required: true },
+  phone: { type: String },
+  googleId: { type: String, unique: true },
+  password: { type: String},
   isBlocked:{ type: Boolean, required: true },
 }, { timestamps: true });
 

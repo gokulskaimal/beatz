@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Change Password</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFB800',
+                        darker: '#121212',
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-white">
+    <%- include('../partials/header') %>
+    <div class="container mx-auto p-6 flex gap-8">
+        <!-- Sidebar -->
+        <%- include('../partials/userSideBar') %>
+
+        <!-- Main Content -->
+        <div class="flex-1">
+            <div class="rounded-lg border border-gold/30 p-6 h-full bg-darker">
+                <h1 class="text-2xl font-bold text-gold mb-8">Change Password</h1>
+
+                <form id="changePasswordForm" class="space-y-4">
+                    <div>
+                        <label for="currentPassword" class="block text-sm font-medium text-gray-400">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required
+                            class="mt-1 w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium text-gray-400">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" required
+                            class="mt-1 w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                    </div>
+                    <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-400">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                            class="mt-1 w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-black border border-gold text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
+                        Request OTP
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otpVerificationModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-lg w-96">
+            <h2 class="text-lg font-bold text-gold mb-4">Enter OTP</h2>
+            <form id="otpVerificationForm">
+                <div class="space-y-4">
+                    <input type="text" name="otp" placeholder="Enter OTP" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white rounded-md">
+                </div>
+                <button type="submit"
+                    class="mt-4 w-full bg-black border border-gold text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
+                    Verify OTP
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        const otpVerificationModal = document.getElementById('otpVerificationModal');
+        const otpVerificationForm = document.getElementById('otpVerificationForm');
+
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            if (formData.get('newPassword') !== formData.get('confirmPassword')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'New password and confirmation do not match.',
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/user/request-password-change-otp', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'OTP Sent',
+                        text: 'Please check your email for the OTP.',
+                    });
+                    otpVerificationModal.classList.remove('hidden');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Failed to send OTP. Please try again.',
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+
+        otpVerificationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            formData.append('newPassword', changePasswordForm.newPassword.value);
+
+            try {
+                const response = await fetch('/user/verify-password-change-otp', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Your password has been changed successfully.',
+                    }).then(() => {
+                        window.location.href = '/user/account';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Failed to verify OTP. Please try again.',
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+
+        // Close modal when clicking outside
+        otpVerificationModal.addEventListener('click', (e) => {
+            if (e.target === otpVerificationModal) {
+                otpVerificationModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

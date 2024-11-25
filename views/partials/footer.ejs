@@ -1,41 +1,39 @@
-<footer class="bg-darker py-12 border-t border-gray-800">
-  <div class="container mx-auto px-4">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-              <h3 class="font-bold mb-4">Products</h3>
-              <ul class="space-y-2">
-                  <li><a href="#" class="text-gray-400 hover:text-white">View All</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Special Editions</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Accessories</a></li>
-              </ul>
-          </div>
-          <div>
-              <h3 class="font-bold mb-4">Support</h3>
-              <ul class="space-y-2">
-                  <li><a href="#" class="text-gray-400 hover:text-white">Help Center</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Warranty</a></li>
-              </ul>
-          </div>
-          <div>
-              <h3 class="font-bold mb-4">Company</h3>
-              <ul class="space-y-2">
-                  <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Careers</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">News</a></li>
-              </ul>
-          </div>
-          <div>
-              <h3 class="font-bold mb-4">Legal</h3>
-              <ul class="space-y-2">
-                  <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Terms of Use</a></li>
-                  <li><a href="#" class="text-gray-400 hover:text-white">Trademarks</a></li>
-              </ul>
-          </div>
-      </div>
-      <div class="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>© 2024 Beatz. All rights reserved.</p>
-      </div>
-  </div>
+<footer class="bg-darker py-8">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap justify-between">
+            <div class="w-full md:w-1/4 mb-6 md:mb-0">
+                <h3 class="text-xl font-bold text-orange-500 mb-4">beatz</h3>
+                <p class="text-gray-400 text-sm"></p>
+            </div>
+            <div class="w-full md:w-1/4 mb-6 md:mb-0">
+                <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">About Us</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">Contact</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="w-full md:w-1/4 mb-6 md:mb-0">
+                <h4 class="text-lg font-semibold mb-4">Customer Service</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">Shipping</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">Returns</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-orange-500 transition-colors">Warranty</a></li>
+                </ul>
+            </div>
+            <div class="w-full md:w-1/4">
+                <h4 class="text-lg font-semibold mb-4">Newsletter</h4>
+                <p class="text-gray-400 text-sm mb-4">Subscribe to our newsletter for the latest updates and offers.</p>
+                <form class="flex">
+                    <input type="email" placeholder="Your email" class="bg-gray-800 text-sm text-gray-300 px-4 py-2 rounded-l-lg focus:outline-none flex-grow">
+                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-r-lg hover:bg-orange-600 transition-colors">Subscribe</button>
+                </form>
+            </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-6 text-center">
+            <p class="text-gray-500 text-sm">
+                © <%= new Date().getFullYear() %> Beatz. All rights reserved.
+            </p>
+        </div>
+    </div>
 </footer>

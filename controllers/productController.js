@@ -1,9 +1,21 @@
 const Product = require('../models/productModel');
 const Category = require('../models/categoryModel');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const mongoose = require("mongoose")
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../utils/cloudinary');
+const mongoose = require("mongoose");
 
+// Set up Multer storage for Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'products',  // Cloudinary folder for the images
+    allowed_formats: ['jpg', 'png', 'jpeg'], // Allowed image formats
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]  // Optional: Resize images
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Get all products with pagination
 exports.getAllProducts = async (req, res) => {
@@ -12,16 +24,20 @@ exports.getAllProducts = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    // Fetch products with pagination and category details
-    const products = await Product.find()
+    let products = await Product.find()
       .skip(skip)
       .limit(limit)
-      .populate('category', 'name'); // Populate category name
+      .populate('category'); // Populate category name
 
+      products = products.filter(product =>{
+        if(product.category.status = "active"){
+          return product;
+        }
+      })
+      
     const totalProducts = await Product.countDocuments();
     const totalPages = Math.ceil(totalProducts / limit);
 
-    // Fetch all categories for the category dropdown
     const categories = await Category.find();
 
     res.render('admin/products', {
@@ -29,11 +45,11 @@ exports.getAllProducts = async (req, res) => {
       categories,
       currentPage: page,
       totalPages,
-    });
+    message:null});
   } catch (err) {
-    res.status(500).send('Server Error');
+    res.status(500).send({});
   }
-}; 
+};
 
 // Get a single product by ID
 exports.getProductById = async (req, res) => {
@@ -42,89 +58,91 @@ exports.getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).send('Product not found');
     }
-    res.json(product);
+    res.render('user/product', { product });
   } catch (err) {
     res.status(500).send('Server Error');
   }
 };
 
 // Add a new product
-exports.addProduct = async (req, res) => {
-  const { product_name, description, category, price, stock, specifications, variants } = req.body;
-  try {
-    // Validate required fields
-    if (!product_name || !description || !category || !price || !stock || !req.files || req.files.length < 3) {
-      return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
-    }
+exports.addProduct = [
+  upload.array('product_images', 3),
+  async (req, res) => {
+    const { product_name, description, category, price, stock, specifications, variants } = req.body;
+    
+    try {
+      // if (!product_name || !description || !category || !price || !stock || !req.files || req.files.length < 3) {
+      //   return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
+      // }
 
-    // Handle multiple images
-    const images = req.files.product_images.map(file =>`/uploads/${file.filename}`);
-    const product = new Product({ 
-      product_name,
-      description,
-      category,
-      image: images,  // Ensure correct field name for images
-      price,
-      stock,
-      specifications,
-      variants, // Include variants
-    });
-
-    await product.save();
-    res.status(201).json({ success: true, message: 'Product added successfully' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to add product' });
-  }
-};
-
- 
-// Update a product
-
-exports.updateProduct = async (req, res) => {
-  
-  const { product_name, description, category, price, stock, specifications, variants } = req.body;
-
-
-  try {
-    // Validate required fields
-    if (!product_name || !description || !category || !price || !stock) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
-    }
-
-    // Handle multiple images if present
-    const images = req.files ? req.files.product_images.map(file => `/uploads/${file.filename}`) : [];
-
-    // Check if the product ID is valid
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid product ID' });
-    }
-
-    // Update the product in the database
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      {
+      // Handle multiple images uploaded to Cloudinary
+      if(req.files.length === 3&& product_name && description && category && price && stock && req.files){
+      const images = req.files.map(file => file.path); 
+      const product = new Product({
         product_name,
         description,
         category,
-        images, // Array of image paths
+        image: images,  
         price,
         stock,
         specifications,
-        variants, // Include updated variants
-      },
-      { new: true } // Return the updated document
-    );
-    
-
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
+        variants,
+      });
+      await product.save();
+      res.status(201).json({ success: true, message: 'Product added successfully' });
     }
 
-    res.json({ success: true, message: 'Product updated successfully', product });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to update product' });
+     
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to add product' });
+    }
   }
-};
+];
+
+// Update a product
+exports.updateProduct = [
+  upload.array('product_images', 3),
+  async (req, res) => {
+    const { product_name, description, category, price, stock, specifications, variants } = req.body;
+
+    try {
+      if (!product_name || !description || !category || !price || !stock || req.files.length < 3 ) {
+        return res.status(400).json({ success: false, message: 'All fields are required' });
+      }
+
+      const images = req.files ? req.files.map(file => file.path) : [];
+
+      if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ success: false, message: 'Invalid product ID' });
+      }
+
+      const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        {
+          product_name,
+          description,
+          category,
+          image: images, // Store Cloudinary URLs
+          price,
+          stock,
+          specifications,
+          variants,
+        },
+        { new: true }
+      );
+
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      else{
+        return res.json({ success: true, message: 'Product updated successfully', product });
+      }
+       
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Failed to update product' });
+    }
+  }
+];
 
 
 // Block a product
@@ -153,7 +171,6 @@ exports.softDeleteProduct = async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
-
     res.status(500).json({ success: false, message: 'Error deleting product' });
   }
 };
