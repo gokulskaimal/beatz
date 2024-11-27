@@ -79,7 +79,7 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-});
+},{ timestamps: true });
 
 // Pre-save hook to calculate and set discountPrice
 productSchema.pre('save', function (next) {

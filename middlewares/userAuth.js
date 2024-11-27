@@ -1,8 +1,9 @@
 // Middleware function to check if the user is logged in
 const checkSession = (req, res, next) => {
-    // Check if there is a user object in the session
+
     if (req.session.user) {
-        // If user is logged in, proceed to the next middleware or route handler
+
+        req.user = req.session.user;
         next();
     } else {
         // If user is not logged in, redirect to the login page
@@ -12,9 +13,8 @@ const checkSession = (req, res, next) => {
 
 // Middleware function to check if the user is already logged in
 const isLogin = (req, res, next) => {
-    // Check if there is a user object in the session
     if (req.session.user) {
-        // If user is logged in, redirect to the home page
+        req.user = req.session.user;
         res.redirect("/user/home");
     } else {
         // If user is not logged in, proceed to the next middleware or route handler

@@ -15,7 +15,7 @@ const isLogin = (req, res, next) => {
     // Check if there is an admin object in the session
     if (req.session.admin) {
         // If admin is logged in, redirect to the admin home page
-        res.redirect('/admin/home');
+        res.redirect('/admin/dashboard');
     } else {
         // If admin is not logged in, proceed to the next middleware or route handler
         next();

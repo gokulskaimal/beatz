@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Beatz</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     tailwind.config = {
         theme: {
@@ -64,7 +65,7 @@
             minlength="8"
             class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
         </div>
-        <a href="#" class="text-sm text-orange-500 hover:underline">Forgot password?</a>
+        <a href="/auth/forgot-password" class="text-sm text-orange-500 hover:underline">Forgot password?</a>
         <button 
           type="submit" 
           class="w-full mt-4 py-2 bg-orange-500 text-black font-bold rounded hover:bg-orange-600">Sign In</button>

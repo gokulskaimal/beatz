@@ -29,7 +29,6 @@ passport.use(
           email: profile.emails[0].value,
           isBlocked: false,
         });
-
         await newUser.save();
         done(null, newUser);
       } catch (err) {

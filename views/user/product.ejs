@@ -8,6 +8,7 @@
         <%= product.product_name %>
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -129,7 +130,7 @@
                                 <%= product.description %>
                             </p>
                             <div class="mb-6">
-                                <span class="text-orange-500 text-3xl font-bold">₹<%= product.price %></span>
+                                <span class="text-white-800 text-3xl font-bold"><span class="text-red-600 font-bold">₹ </span><%= product.price %></span>
                                 <span class="text-gray-500 line-through ml-2">₹<%= product.price+500 %></span>
                                 <span class="text-green-500 ml-2 text-sm font-semibold">2<%= product.discount %>%
                                         OFF</span>
@@ -154,12 +155,12 @@
                         </div>
 
                         <div class="flex gap-4">
-                            <button
-                                class="flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-semibold">
+                            <button id="add-to-cart"
+                                class="flex-1 bg-yellow-600 text-black px-6 py-3 rounded-lg hover:bg-balck-600 transition-colors font-bold">
                                 Add to Cart
                             </button>
                             <button
-                                class="flex-1 bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-semibold">
+                                class="flex-1 bg-gray-700 text-black px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-bold">
                                 Buy Now
                             </button>
                         </div>
@@ -184,8 +185,8 @@
                                     <%= product.description.substring(0, 60) %>...
                                 </p>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-orange-500 font-bold">₹<%= product.price %></span>
-                                    <a href="/product/<%= product.id %>"
+                                    <span class="text-white-800 font-bold"><span class="text-red-800 font-bold">₹</span><%= product.price %></span>
+                                    <a href="/user/product/<%= product._id %>"
                                         class="text-sm text-orange-500 hover:underline">View Details</a>
                                 </div>
                             </div>
@@ -194,31 +195,38 @@
                 </div>
             </section>
         </main>
+        <input type="hidden" id="message" value="<%= message || '' %>">
 
         <!-- Footer -->
         <%- include('../partials/footer') %>
 
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
-                        const userIcon = document.getElementById('user-icon');
-                        const userDropdown = document.getElementById('user-dropdown');
-
-                        // Toggle the dropdown menu visibility on click
-                        userIcon.addEventListener('click', () => {
-                            userDropdown.classList.toggle('hidden');
+                    const message = document.getElementById('message').value;
+                    if (message) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Message',
+                            text: message,
                         });
+                    }
 
-                        // Hide the dropdown when clicking outside
-                        document.addEventListener('click', (e) => {
-                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
-                                userDropdown.classList.add('hidden');
-                            }
-                        });
+                    const userIcon = document.getElementById('user-icon');
+                    const userDropdown = document.getElementById('user-dropdown');
+
+                    // Toggle the dropdown menu visibility on click
+                    userIcon.addEventListener('click', () => {
+                        userDropdown.classList.toggle('hidden');
                     });
-                const message = document.getElementById('message').value;
-                if (message) {
-                    alert(message);
-                }
+
+                    // Hide the dropdown when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                            userDropdown.classList.add('hidden');
+                        }
+                    });
+                });
+
                 // Image zoom functionality
                 const imageZoom = document.getElementById('imageZoom');
                 imageZoom.addEventListener('mousemove', (e) => {
@@ -228,7 +236,47 @@
                     imageZoom.style.setProperty('--zoom-x', `${x}%`);
                     imageZoom.style.setProperty('--zoom-y', `${y}%`);
                 });
+
+                document.getElementById('add-to-cart').addEventListener('click', async () => {
+                    const productId = '<%= product._id %>';
+                    console.log(productId)
+                    const quantity = 1;
+
+                    try {
+                        const response = await fetch('/user/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ productId, quantity }),
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Product added to cart successfully!',
+                            });
+                            // Optionally, update the cart count or UI
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Failed to add product to cart: ' + result.message,
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error adding to cart:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An unexpected error occurred.',
+                        });
+                    }
+                });
             </script>
 </body>
 
 </html>
+

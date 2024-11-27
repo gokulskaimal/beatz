@@ -84,59 +84,5 @@ exports.getProduct = async (req, res) => {
     }
 };
 
-// // Fetch User's Address List
-// exports.getAddressList = async (req, res) => {
-//     try {
-//         const userId = req.user.id;
-//         const addresses = await User.findById(userId).select('addresses'); // Assuming 'addresses' is an array in your User model
-//         res.render('user/address', { addresses: addresses || [], message: null });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).render('user/address', { addresses: [], message: 'Server error' });
-//     }
-// };
 
-// // Add New Address
-// exports.addAddress = async (req, res) => {
-//     try {
-//         const { name, street, city, state, zipCode, country, phone } = req.body;
-//         const userId = req.user.id;
-
-//         if (!name || !street || !city || !state || !zipCode || !country || !phone) {
-//             return res.status(400).redirect('/account/address');
-//         }
-
-//         const newAddress = { name, street, city, state, zipCode, country, phone };
-
-//         const updatedUser = await User.findByIdAndUpdate(
-//             userId,
-//             { $push: { addresses: newAddress } },
-//             { new: true }
-//         ).select('addresses');
-
-//         res.redirect('/account/address');
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).redirect('/account/address');
-//     }
-// };
-
-// // Delete Address
-// exports.deleteAddress = async (req, res) => {
-//     try {
-//         const userId = req.user.id;
-//         const { addressId } = req.params;
-
-//         const updatedUser = await User.findByIdAndUpdate(
-//             userId,
-//             { $pull: { addresses: { _id: addressId } } },
-//             { new: true }
-//         ).select('addresses');
-
-//         res.redirect('/account/address');
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).redirect('/account/address');
-//     }
-// };
 

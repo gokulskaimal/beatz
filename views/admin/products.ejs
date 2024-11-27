@@ -133,7 +133,7 @@
                       class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Edit
                     </button>
-                    <button onclick="deleteProduct('<%= product.id %>')"
+                    <button onclick="deleteProduct('<%= product._id %>')"
                       class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Remove
                     </button>
@@ -347,7 +347,7 @@
     // Delete Product
     async function deleteProduct(productId) {
       if (!confirm("Are you sure you want to remove this product?")) return;
-
+      console.log(productId)
       try {
         const response = await fetch(`/admin/products/${productId}`, {
           method: "DELETE",

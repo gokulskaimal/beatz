@@ -29,14 +29,14 @@ exports.getAllProducts = async (req, res) => {
       .limit(limit)
       .populate('category'); // Populate category name
 
-      products = products.filter(product =>{
-        if(product.category.status = "active"){
-          return product;
-        }
-      })
-      
+    products = products.filter(product => {
+      if (product.category.status == "Active" && product.isBlocked == false ) {
+        return product;
+      }
+    });
+
     const totalProducts = await Product.countDocuments();
-    const totalPages = Math.ceil(totalProducts / limit);
+    const totalPages = totalProducts > 0 ? Math.ceil(totalProducts / limit) : 1;
 
     const categories = await Category.find();
 
@@ -45,9 +45,10 @@ exports.getAllProducts = async (req, res) => {
       categories,
       currentPage: page,
       totalPages,
-    message:null});
+      message: null
+    });
   } catch (err) {
-    res.status(500).send({});
+    res.status(500).send({ success: false, message: 'An error occurred while fetching products.' });
   }
 };
 
@@ -69,30 +70,27 @@ exports.addProduct = [
   upload.array('product_images', 3),
   async (req, res) => {
     const { product_name, description, category, price, stock, specifications, variants } = req.body;
-    
+
     try {
-      // if (!product_name || !description || !category || !price || !stock || !req.files || req.files.length < 3) {
-      //   return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
-      // }
+      if (!product_name || !description || !category || !price || !stock || req.files.length < 3) {
+        return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
+      }
 
       // Handle multiple images uploaded to Cloudinary
-      if(req.files.length === 3&& product_name && description && category && price && stock && req.files){
-      const images = req.files.map(file => file.path); 
+      const images = req.files.map(file => file.path);
       const product = new Product({
         product_name,
         description,
-        category,
-        image: images,  
+        category,  // Ensure valid category is passed
+        image: images,
         price,
         stock,
         specifications,
         variants,
       });
+
       await product.save();
       res.status(201).json({ success: true, message: 'Product added successfully' });
-    }
-
-     
     } catch (err) {
       res.status(500).json({ success: false, message: 'Failed to add product' });
     }
@@ -106,8 +104,8 @@ exports.updateProduct = [
     const { product_name, description, category, price, stock, specifications, variants } = req.body;
 
     try {
-      if (!product_name || !description || !category || !price || !stock || req.files.length < 3 ) {
-        return res.status(400).json({ success: false, message: 'All fields are required' });
+      if (!product_name || !description || !category || !price || !stock || req.files.length < 3) {
+        return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
       }
 
       const images = req.files ? req.files.map(file => file.path) : [];
@@ -121,8 +119,8 @@ exports.updateProduct = [
         {
           product_name,
           description,
-          category,
-          image: images, // Store Cloudinary URLs
+          category, // Use the category directly
+          image: images,
           price,
           stock,
           specifications,
@@ -134,16 +132,13 @@ exports.updateProduct = [
       if (!product) {
         return res.status(404).json({ success: false, message: 'Product not found' });
       }
-      else{
-        return res.json({ success: true, message: 'Product updated successfully', product });
-      }
-       
+      return res.json({ success: true, message: 'Product updated successfully', product });
+
     } catch (err) {
       return res.status(500).json({ success: false, message: 'Failed to update product' });
     }
   }
 ];
-
 
 // Block a product
 exports.blockProduct = async (req, res) => {
@@ -167,10 +162,11 @@ exports.unblockProduct = async (req, res) => {
 
 // Soft delete a product
 exports.softDeleteProduct = async (req, res) => {
+  console.log(req.params.id)
   try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Product deleted successfully' });
+    await Product.findByIdAndUpdate(req.params.id, {$set:{ isBlocked: true}});
+    res.json({ success: true, message: 'Product soft deleted successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Error deleting product' });
+    res.status(500).json({ success: false, message: 'Error soft deleting product' });
   }
 };

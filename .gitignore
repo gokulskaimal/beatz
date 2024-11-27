@@ -1,39 +1,15 @@
 # Node modules
 /node_modules/
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Environment variables
 .env
 
-# Dependency directories
-bower_components/
 
 # Build output
 /dist
 /build
 
-# System files
-.DS_Store
-Thumbs.db
 
 # IDE or Editor settings
 .vscode/
-.idea/
-*.sublime-workspace
-*.sublime-project
-
-# Operating System files
-*.swp
-*.bak
-*.tmp
-
-# Package lock files
-package-lock.json
-yarn.lock
-
-# TypeScript build output
-*.tsbuildinfo
