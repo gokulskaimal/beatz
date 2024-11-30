@@ -15,12 +15,12 @@ const flash = require('connect-flash');
 app.use(flash());
 app.use(nocache());
 app.use(methodOverride('_method'));
-
+   
 
 // Connect to MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/beatz')
   .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error(err));
+  .catch((err) => console.error(err)); 
 
 
 // Middleware 
@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'your-secret-key', 
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false },
@@ -36,7 +36,7 @@ app.use(session({
 
 
 app.use((req, res, next) => {
-  if (req.session.alert) {
+  if (req.session.alert) { 
     res.locals.alert = req.session.alert;
     delete req.session.alert;
   }
@@ -69,7 +69,7 @@ app.use((req, res, next) => {
  
 
 // Routes   
-app.use('/auth', authRoutes);
+app.use('/auth', authRoutes); 
 app.use("/admin", adminRoutes);
 app.use("/user", userRoutes)
 

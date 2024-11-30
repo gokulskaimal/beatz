@@ -66,7 +66,7 @@
                                 <!-- Order Details -->
                                 <div class="grid grid-cols-2 gap-2 text-sm text-gray-300 mb-4">
                                     <p>Status: <span class="font-semibold text-white"><%= order.orderStatus %></span></p>
-                                    <p>Total Items: <span class="font-semibold text-white"><%= order.totalItems %></span></p>
+                                    <p>Total Items: <span class="font-semibold text-white"><%= order.items.length %></span></p>
                                     <p>Total Amount: <span class="font-semibold text-white">₹<%= order.payment.discountPrice.toFixed(2) %></span></p>
                                     <p>Payment Method: <span class="font-semibold text-white"><%= order.payment.paymentMethod %></span></p>
                                     <p>Payment Status: <span class="font-semibold text-white"><%= order.payment.paymentStatus %></span></p>
@@ -150,11 +150,11 @@
             try {
                 const response = await fetch(`/user/order/details/${orderId}`);
                 const data = await response.json();
-
+              
                 if (response.ok) {
                     // Populate order information
                     document.getElementById('orderId').textContent = data.order._id;
-                    document.getElementById('orderDate').textContent = data.order.formattedDate;
+                    document.getElementById('orderDate').textContent = data.formatedDate;
                     document.getElementById('orderStatus').textContent = data.order.orderStatus;
 
                     // Populate customer details
@@ -164,7 +164,7 @@
                     // Populate shipping address
                     const address = data.order.customer.shippingAddress;
                     document.getElementById('shippingAddress').textContent = 
-                        `${address.name}, ${address.address}, ${address.city}, ${address.state}, ${address.pincode}, ${address.phone}`;
+                        `${address.name}, ${address.street}, ${address.city}, ${address.state}, ${address.country}, ${address.zipCode}, ${address.phone}`;
 
                     // Populate product details
                     const productList = document.getElementById('productList');

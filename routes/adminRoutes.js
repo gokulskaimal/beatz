@@ -1,10 +1,10 @@
 const express = require('express');
-const adminController = require('../controllers/adminController');
+const adminController = require('../controllers/admin/adminController');
 const router = express.Router();
 const adminAuth = require("../middlewares/adminAuth");
-const productController = require('../controllers/productController');
-const categoryController = require('../controllers/categoryController')
-
+const productController = require('../controllers/admin/productController');
+const categoryController = require('../controllers/admin/categoryController')
+const adminOrderController = require('../controllers/admin/adminOrderController')
 // Admin Authentication Routes
 router.get('/login',adminAuth.isLogin, adminController.getLoginPage);
 router.post('/login', adminController.postLogin);
@@ -45,8 +45,11 @@ router.delete('/products/:id',adminAuth.checkSession, productController.softDele
 router.post('/products',adminAuth.checkSession,  productController.addProduct);
 router.put('/products/:id',adminAuth.checkSession,  productController.updateProduct);  // Upload up to 5 images
 
-
-const Category = require('../models/categoryModel'); // Your category schema
+//Orders Management
+router.get('/orders', adminAuth.checkSession, adminOrderController.getOrders);
+router.get('/orders/:orderId', adminAuth.checkSession, adminOrderController.getOrderDetails);
+router.put('/orders/:orderId/status', adminAuth.checkSession, adminOrderController.updateOrderStatus);
+router.post('/orders/:orderId/cancel', adminAuth.checkSession, adminOrderController.cancelOrder);
 
 
 

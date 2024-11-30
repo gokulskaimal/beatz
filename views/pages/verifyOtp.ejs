@@ -33,7 +33,7 @@
       <div class="bg-zinc-900/50 backdrop-blur-sm p-8 rounded-lg">
         <h1 class="text-center text-2xl font-bold text-[#f97316] mb-8">Enter your Otp</h1>
         <form action="/auth/verify-otp" method="POST" class="space-y-6">
-          <input type="hidden" name="email" value="<%= tempUser.email %>">
+
           <input type="text" id="otp" name="otp" required maxlength="6"
             class="w-full bg-zinc-800/50 border border-zinc-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f97316]"
             placeholder="Enter your OTP">

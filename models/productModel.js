@@ -1,21 +1,12 @@
 const mongoose = require('mongoose');
 
-const ratingSchema = new mongoose.Schema({
-  value: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 5,
-  },
-});
-
 const specificationsSchema = new mongoose.Schema({
   model_name: {
     type: String,
     required: true,
   },
   type: {
-    type: String,
+    type: String, 
     required: true,
   },
   color: {
@@ -39,14 +30,14 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category', // Assuming you have a Category model
+    ref: 'Category',
     required: true,
   },
   image: {
-    type: [String], // Array of image URLs or paths
+    type: [String],
     validate: {
       validator: function (arr) {
-        return arr.length >= 3; // Minimum 3 images required
+        return arr.length >= 3;
       },
       message: 'At least 3 images are required.',
     },
@@ -60,7 +51,7 @@ const productSchema = new mongoose.Schema({
   stock: {
     type: Number,
     required: true,
-    min: 0, // Stock cannot be negative
+    min: 0,
     default: 0,
   },
   specifications: specificationsSchema,
@@ -68,7 +59,12 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  rating: [ratingSchema],
+  rating: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0,
+  },
   discount: {
     type: Number,
     min: 0,

@@ -1,54 +1,60 @@
 const mongoose = require('mongoose');
 
 const cartSchema = new mongoose.Schema({
-    userId: {
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  items: [
+    {
+      product: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Product',
+        required: true
+      },
+      quantity: {
+        type: Number,
         required: true,
-        unique: true, // Ensure each user has only one cart
-    },
-    items: [
-        {
-            productId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Product',
-                required: true,
-            },
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1,
-            },
-        },
-    ],
-    totalQuantity: {
+        min: 1,
+        default: 0
+      },
+      price: {
         type: Number,
-        default: 0, // Calculated field for the total number of items in the cart
-    },
-    totalPrice: {
+        required: true
+      },
+      finalPrice: {
+        type: Number
+      },
+      total: {
         type: Number,
-        default: 0, // Calculated field for the total cart price
-    },
+        required: true
+      },
+      originalTotal: {
+        type: Number,
+      }
+    }
+  ],
+  subTotal: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  totalDiscount: {
+    type: Number,
+    default: 0
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
+  tax: {
+    type: Number,
+    default: 0
+  },
+  grandTotal: {
+    type: Number
+  }
 }, { timestamps: true });
 
-// Middleware to update totalQuantity and totalPrice before saving
-cartSchema.pre('save', async function (next) {
-    let totalQuantity = 0;
-    let totalPrice = 0;
-
-    for (const item of this.items) {
-        const product = await mongoose.model('Product').findById(item.productId);
-        if (product) {
-            totalQuantity += item.quantity;
-            totalPrice += product.price * item.quantity;
-        }
-    }
-
-    this.totalQuantity = totalQuantity;
-    this.totalPrice = totalPrice;
-    next();
-});
-
-const Cart = mongoose.model('Cart', cartSchema);
-
-module.exports = Cart;
+module.exports = mongoose.model('Cart', cartSchema);
