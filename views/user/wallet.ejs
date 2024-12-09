@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet - Beatz Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                        gold: '#FFB800',
+                        darker: '#121212',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-white">
+    <!-- Include Header -->
+    <%- include('../partials/header', { user }) %>
+    
+    <div class="container mx-auto p-6 flex gap-8">
+        <!-- Sidebar -->
+        <%- include('../partials/userSideBar') %>
+
+        <!-- Main Content -->
+        <div class="flex-1">
+            <div class="rounded-lg border border-gold/30 p-6 h-full bg-darker">
+                <h1 class="text-2xl font-bold text-gold mb-8">Your Wallet</h1>
+                
+                <div class="bg-gray-800 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Balance</h2>
+                    <p class="text-3xl font-bold text-orange-500">₹<%= wallet.balance.toFixed(2) %></p>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Add Funds</h2>
+                    <form id="add-funds-form" class="flex gap-4">
+                        <input type="number" id="amount" name="amount" placeholder="Enter amount" min="1" step="0.01" required
+                            class="flex-1 bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded focus:border-gold focus:outline-none">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition-colors">
+                            Add Funds
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left border-b border-gray-700">
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2">Description</th>
+                                    <th class="pb-2">Type</th>
+                                    <th class="pb-2">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% wallet.transactions.sort((a, b) => b.date - a.date).forEach(transaction => { %>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2"><%= new Date(transaction.date).toLocaleDateString() %></td>
+                                        <td class="py-2"><%= transaction.description %></td>
+                                        <td class="py-2"><%= transaction.type %></td>
+                                        <td class="py-2 <%= transaction.amount > 0 ? 'text-green-500' : 'text-red-500' %>">
+                                            <%= transaction.amount > 0 ? '+' : '-' %>₹<%= Math.abs(transaction.amount).toFixed(2) %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <%- include('../partials/footer') %>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addFundsForm = document.getElementById('add-funds-form');
+            addFundsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const amount = document.getElementById('amount').value;
+
+                try {
+                    const response = await fetch('/user/wallet/add-funds', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ amount }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Funds Added',
+                            text: `₹${amount} has been added to your wallet.`,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                }
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+    
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+    
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

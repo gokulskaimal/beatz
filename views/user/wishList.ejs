@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Wishlist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                        darker: '#121212',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+    <!-- Header -->
+    <%- include('../partials/header',{ user}) %>
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h1 class="text-3xl text-yellow-500 font-bold mb-6">Your Wishlist</h1>
+
+        <div id="wishlistContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Wishlist items will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/footer') %>
+
+    <script>
+        function showMessage(icon, title, text) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: text,
+            });
+        }
+
+        async function fetchWishlist() {
+            try {
+                const response = await fetch('/user/wishlist/data', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                renderWishlist(data.wishlist);
+            } catch (err) {
+                showMessage('error', 'Error', 'An error occurred while fetching your wishlist.');
+            }
+        }
+
+        function renderWishlist(wishlist) {
+            const wishlistContent = document.getElementById('wishlistContent');
+            if (wishlist.length === 0) {
+                wishlistContent.innerHTML = '<p class="text-gray-400 col-span-full">Your wishlist is empty.</p>';
+                showMessage('info', 'Info', 'Your wishlist is empty.');
+            } else {
+                wishlistContent.innerHTML = wishlist.map(item => `
+                    <div class="bg-darker rounded-lg shadow-xl overflow-hidden" data-wishlist-item-id="${item.wishlistItemId}">
+                        <a href="/user/product/${item._id}" > <img src="${item.image[0]}" alt="${item.product_name}" class="w-full h-48 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-2">${item.product_name}</h3>
+                            <p class="text-gray-400 mb-2">${item.description ? item.description.substring(0, 20) + '...' : ''}</p></a>
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold"><span class="text-red-500">₹</span>${item.discountPrice || item.price}</p>
+                                <div class="flex space-x-2">
+                                    <button onclick="addToCart('${item._id}')" class="bg-yellow-600 text-black px-4 py-2 rounded hover:bg-yellow-500 transition-colors">
+                                        Add to Cart
+                                    </button>
+                                    <button onclick="removeFromWishlist('${item.wishlistItemId}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 transition-colors">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function addToCart(productId) {
+            try {
+                const response = await fetch('/user/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ productId, quantity: 1 })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('success', 'Success', result.message);
+                } else {
+                    showMessage('error', 'Error', result.message);
+                }
+            } catch (err) {
+                showMessage('error', 'Error', 'An error occurred. Please try again later.');
+            }
+        }
+
+        async function removeFromWishlist(wishlistItemId) {
+            try {
+                const response = await fetch('/user/wishlist/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ wishlistItemId })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('success', 'Removed', result.message);
+                    const itemElement = document.querySelector(`[data-wishlist-item-id="${wishlistItemId}"]`);
+                    if (itemElement) {
+                        itemElement.remove();
+                    }
+                    if (document.querySelectorAll('#wishlistContent > div').length === 0) {
+                        document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full">Your wishlist is empty.</p>';
+                    }
+                } else {
+                    showMessage('error', 'Error', result.message);
+                }
+            } catch (err) {
+                showMessage('error', 'Error', 'An error occurred. Please try again later.');
+            }
+        }
+
+        // Fetch and render wishlist on page load
+        document.addEventListener('DOMContentLoaded', fetchWishlist);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+    
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+    
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beatz Admin Order Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            orange: {
+              500: "#f97316",
+              600: "#ea580c",
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+        .bg-darker {
+          background-color: #0a0a0a;
+        }
+      }
+    </style>
+</head>
+
+<body class="min-h-screen bg-black text-white">
+  <div class="flex h-screen">
+    <!-- Sidebar (unchanged) -->
+    <div class="w-64 bg-[#111] p-4">
+      <%- include('../partials/adminHeader') %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 bg-darker">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-orange-500">Order Management</h1>
+        <div class="relative">
+          <input id="searchInput"
+            class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Search for orders" />
+        </div>
+      </div>
+
+      <!-- Orders Table -->
+      <div class="bg-[#111] rounded-lg overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-gray-800">
+              <th class="text-left p-4 text-orange-500">Sl.No</th>
+              <th class="text-left p-4 text-orange-500">Customer</th>
+              <th class="text-left p-4 text-orange-500">Total Amount</th>
+              <th class="text-left p-4 text-orange-500">Status</th>
+              <th class="text-left p-4 text-orange-500">Order Date</th>
+              <th class="text-left p-4 text-orange-500">Action</th>
+            </tr>
+          </thead>
+          <tbody id="orderTableBody">
+            <% orders.forEach((order,index) => { %>
+              <tr class="border-b border-gray-800">
+                <td class="p-4"><%= index+1 %></td>
+                <td class="p-4"><%= order.customer.customerName %></td>
+                <td class="p-4">₹<%= order.payment.discountPrice.toFixed(2) %></td>
+                <td class="p-4">
+                  <select class="bg-[#222] text-white px-2 py-1 rounded" onchange="updateOrderStatus('<%= order._id %>', this.value)" <%= ['Cancelled', 'Delivered'].includes(order.orderStatus) ? 'disabled' : '' %>>
+                    <option value="Pending" <%= order.orderStatus === 'Pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="Processing" <%= order.orderStatus === 'Processing' ? 'selected' : '' %>>Processing</option>
+                    <option value="Shipped" <%= order.orderStatus === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                    <option value="Delivered" <%= order.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                    <option value="Cancelled" <%= order.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                </td>
+                <td class="p-4"><%= new Date(order.orderDate).toLocaleDateString() %></td>
+                <td class="p-4">
+                  <button onclick="viewOrderDetails('<%= order._id %>')"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 mr-2">
+                    View Details
+                  </button>
+                  <% if (order.items.some(item => item.status === 'Return Requested')) { %>
+                    <button onclick="viewReturnRequests('<%= order._id %>')"
+                      class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      Return
+                    </button>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center gap-2 mt-4">
+        <% for(let i = 1; i <= totalPages; i++) { %>
+          <a href="?page=<%= i %>" class="px-3 py-2 bg-gray-800 text-white rounded <%= currentPage == i ? 'bg-orange-500' : '' %>">
+            <%= i %>
+          </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Details Modal -->
+  <div id="orderDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-[#111] p-6 rounded-lg max-w-2xl w-full">
+      <h2 class="text-2xl font-bold mb-4 text-orange-500">Order Details</h2>
+      <div id="orderDetailsContent"></div>
+      <button onclick="closeOrderDetailsModal()" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Return Requests Modal -->
+  <div id="returnRequestsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-[#111] p-6 rounded-lg max-w-2xl w-full">
+      <h2 class="text-2xl font-bold mb-4 text-orange-500">Return Requests</h2>
+      <div id="returnRequestsContent"></div>
+      <button onclick="closeReturnRequestsModal()" class="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function updateOrderStatus(orderId, newStatus) {
+      fetch(`/admin/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Success', 'Order status updated successfully', 'success').then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire('Error', data.message || 'Failed to update order status', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while updating order status', 'error');
+      });
+    }
+
+    function viewOrderDetails(orderId) {
+      fetch(`/admin/orders/${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+          const modalContent = document.getElementById('orderDetailsContent');
+          modalContent.innerHTML = `
+            <p><strong>Order ID:</strong> ${order._id}</p>
+            <p><strong>Customer Name:</strong> ${order.customer.customerName}</p>
+            <p><strong>Email:</strong> ${order.customer.customerEmail}</p>
+            <p><strong>Total Amount:</strong> ₹${order.payment.discountPrice.toFixed(2)}</p>
+            <p><strong>Status:</strong> ${order.orderStatus}</p>
+            <p><strong>Order Date:</strong> ${new Date(order.orderDate).toLocaleString()}</p>
+            <h3 class="text-lg font-bold mt-4 mb-2">Items:</h3>
+            <ul class="space-y-2">
+              ${order.items.map(item => `
+                <li class="flex items-center space-x-2">
+                  <img src="${item.productId.image[0]}" alt="${item.productName}" class="w-12 h-12 object-cover rounded">
+                  <div>
+                    <p>${item.productName}</p>
+                    <p>Quantity: ${item.quantity}, Price: ₹${item.discountPrice.toFixed(2)}</p>
+                    <p>Status: ${item.status}</p>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+          `;
+          document.getElementById('orderDetailsModal').classList.remove('hidden');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire('Error', 'Failed to fetch order details', 'error');
+        });
+    }
+
+    function closeOrderDetailsModal() {
+      document.getElementById('orderDetailsModal').classList.add('hidden');
+    }
+
+    function viewReturnRequests(orderId) {
+      fetch(`/admin/orders/${orderId}`)
+        .then(response => response.json())
+        .then(order => {
+          const returnItems = order.items.filter(item => item.status === 'Return Requested');
+          const modalContent = document.getElementById('returnRequestsContent');
+          modalContent.innerHTML = `
+            <h3 class="text-lg font-bold mb-2">Return Requests for Order #${order._id}</h3>
+            <ul class="space-y-4">
+              ${returnItems.map(item => `
+                <li class="border-b border-gray-700 pb-4">
+                  <p><strong>Product:</strong> ${item.productName}</p>
+                  <p><strong>Quantity:</strong> ${item.quantity}</p>
+                  <p><strong>Return Reason:</strong> ${item.returnReason}</p>
+                  <p><strong>Request Date:</strong> ${new Date(item.returnRequestDate).toLocaleString()}</p>
+                  <div class="mt-2">
+                    <button onclick="handleReturnRequest('${order._id}', '${item._id}', 'approve')"
+                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm mr-2">
+                      Approve
+                    </button>
+                    <button onclick="handleReturnRequest('${order._id}', '${item._id}', 'reject')"
+                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm">
+                      Reject
+                    </button>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+          `;
+          document.getElementById('returnRequestsModal').classList.remove('hidden');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire('Error', 'Failed to fetch return requests', 'error');
+        });
+    }
+
+    function closeReturnRequestsModal() {
+      document.getElementById('returnRequestsModal').classList.add('hidden');
+    }
+
+    function handleReturnRequest(orderId, itemId, action) {
+      fetch('/admin/orders/return-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId, itemId, action }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Success', data.message, 'success').then(() => {
+            closeReturnRequestsModal();
+            location.reload();
+          });
+        } else {
+          Swal.fire('Error', data.message || 'Failed to process return request', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while processing the return request', 'error');
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#orderTableBody tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+
+</html>
+

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <%- include('../partials/header',{ user}) %>
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-gray-800 rounded-lg shadow-md p-8">
+            <h1 class="text-3xl font-bold mb-6 text-center">Order Confirmed!</h1>
+
+            <div class="text-center mb-6">
+                <p class="text-xl">Thank you for your order.</p>
+                <p class="text-gray-400">Order #<%= order._id.toString().slice(-6) %></p>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-2">Order Summary</h2>
+                <div class="space-y-2">
+                    <% order.items.forEach(item => { %>
+                        <div class="flex justify-between items-center">
+                            <span><%= item.productName %> x <%= item.quantity %></span>
+                            <span>₹<%= item.price.toFixed(2) %></span>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% order.items.forEach(item => { %>
+            <div class="border-t border-gray-700 pt-4 mb-6">
+                <% }) %>
+                <% if (order.payment.couponDiscount) { %>
+                    <div class="flex justify-between items-center mb-2">
+                        <span>Coupon Discount</span>
+                        <span class="text-green-500">₹<%= order.payment.couponDiscount.toFixed(2) %></span>
+                    </div>
+                    <% } %>
+                <div class="flex justify-between items-center mb-2">
+                    <span> TotalProduct Discount</span>
+                    <span class="text-green-500">₹<%= order.payment.discount.toFixed(2) %></span>
+                </div>
+                
+                <div class="flex justify-between items-center font-semibold">
+                    <span>Total</span>
+                    <span>₹<%= order.payment.discountPrice.toFixed(2) %></span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-2">Shipping Address</h2>
+                <p><%= order.customer.customerName %></p>
+                <p><%= order.customer.shippingAddress.name %></p>
+                <p><%= order.customer.shippingAddress.street %></p>
+                <p><%= order.customer.shippingAddress.city %>, <%= order.customer.shippingAddress.state %> <%= order.customer.shippingAddress.zipCode %></p>
+                <p><%= order.customer.shippingAddress.country %></p>
+                <p>Phone: <%= order.customer.shippingAddress.phone %></p>
+            </div>
+
+            <div class="text-center">
+                <a href="/user/myOrders" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">View All Orders</a>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            // Toggle the dropdown menu visibility on click
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Hide the dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+    <%- include('../partials/footer') %>
+</body>
+</html>

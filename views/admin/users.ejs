@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Customers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            orange: {
+              500: '#f97316',
+              600: '#ea580c',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+        .bg-darker { background-color: #0a0a0a; }
+    }
+</style>
+</head>
+
+<body class="min-h-screen bg-black text-white">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-[#111] p-4">
+      <%- include('../partials/adminHeader') %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 bg-darker">
+      <div class="flex justify-between items-center mb-8">
+        <button
+          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors hidden duration-200">
+          Add New Category
+        </button>
+        <div class="relative">
+          <input
+            class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Search for users" />
+        </div>
+      </div>
+      <!-- Users Table -->
+      <div class="bg-[#111] rounded-lg overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-gray-800">
+              <th class="text-left p-4 text-orange-500">Sl. No.</th>
+              <th class="text-left p-4 text-orange-500">Name</th>
+              <th class="text-left p-4 text-orange-500">Email</th>
+              <th class="text-left p-4 text-orange-500">Mobile</th>
+              <th class="text-left p-4 text-orange-500">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach((user, index)=> { %>
+              <tr class="border-b border-gray-800">
+                <td class="p-4">
+                  <%= index + 1 %>
+                </td>
+                <td class="p-4">
+                  <%= user.firstName %>
+                </td>
+                <td class="p-4">
+                  <%= user.email %>
+                </td>
+                <td class="p-4">
+                  <%= user.phone %>
+                </td>
+                <td class="p-4">
+                  <% if (user.isBlocked) { %>
+                    <span class="bg-red-500 text-black px-2 py-1 rounded">Blocked</span>
+                    <% } else { %>
+                      <span class="bg-green-500 text-black px-2 py-1 rounded">Active</span>
+                      <% } %>
+                </td>
+                <td class="p-4">
+                  <div class="flex gap-2">
+                    <button onclick="toggleBlock('<%= user._id %>', '<%= user.isBlocked ? 'Unblock' : 'Block' %>')"
+                      class="<%= user.isBlocked ? 'bg-green-500' : 'bg-red-500' %> text-black px-4 py-1 rounded">
+                      <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 flex justify-center">
+    <nav class="inline-flex">
+      <% if (currentPage> 1) { %>
+        <a href="/admin/categories?page=<%= currentPage - 1 %>"
+          class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+        <% } %>
+          <% for (let i=1; i <=totalPages; i++) { %>
+            <a href="/admin/categories?page=<%= i %>"
+              class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+              <%= i %>
+            </a>
+            <% } %>
+              <% if (currentPage < totalPages) { %>
+                <a href="/admin/categories?page=<%= currentPage + 1 %>"
+                  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                <% } %>
+    </nav>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const message = document.getElementById("message").value;
+        if (message) {
+            const messageBox = document.createElement("div");
+            messageBox.textContent = message;
+            messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
+            document.body.insertBefore(messageBox, document.body.firstChild);
+
+            // Auto-hide the message after 5 seconds
+            setTimeout(() => {
+                messageBox.remove();
+            }, 5000);
+        }
+    });
+    async function toggleBlock(userId, action) {
+      const url = `/admin/users/${action}/${userId}`;
+
+      try {
+        const response = await fetch(url, { method: 'PUT' });
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire('Success!', result.message, 'success').then(() => {
+            location.reload(); // Reload the page to reflect changes
+          });
+        } else {
+          Swal.fire('Error!', result.message, 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error!', 'Something went wrong.', 'error');
+      }
+    }
+
+    async function paginate(page) {
+      const search = document.getElementById('search').value;
+      window.location.href = `/admin/users?page=${page}&search=${search}`;
+    }
+  </script>
+</body>
+
+</html>

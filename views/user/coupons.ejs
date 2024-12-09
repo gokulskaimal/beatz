@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Personal Information</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFB800',
+                        darker: '#121212',
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-white">
+    <%- include('../partials/header',{ user}) %>
+        <div class="container mx-auto p-6 flex gap-8">
+            <!-- Sidebar -->
+
+            <%- include('../partials/userSideBar') %>
+                <!-- Main Content -->
+                <main class="container mx-auto px-4 py-8">
+                    <h1 class="text-3xl text-yellow-500 font-bold mb-8">Available Coupons</h1>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <% coupons.forEach(coupon => { %>
+                            <div class="bg-darker rounded-lg p-6 border border-gray-800">
+                                <h2 class="text-2xl font-semibold mb-2"><%= coupon.code %></h2>
+                                <p class="text-gray-400 mb-4"><%= coupon.description %></p>
+                                <p class="text-lg font-bold text-green-500 mb-2">
+                                    <%= coupon.discountType === 'percentage' ? `${coupon.couponValue}% Off` : `₹${coupon.couponValue} Off` %>
+                                </p>
+                                <p class="text-sm text-white-400 mb-4">Expires: <span class="text-red-500"><%= new Date(coupon.expiryDate).toLocaleDateString() %></span> </p>
+                                <button onclick="copyCouponCode('<%= coupon.code %>')" class="bg-green-800 hover:bg-green-600 text-black font-bold px-4 py-2 rounded w-full">
+                                    Copy Code
+                                </button>
+                            </div>
+                        <% }) %>
+                    </div>
+                </main>
+        </div>
+        <%- include('../partials/footer') %>
+        <script>
+            function copyCouponCode(code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Coupon Code Copied',
+                        text: `The coupon code ${code} has been copied to your clipboard.`,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }, (err) => {
+                    console.error('Could not copy text: ', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Failed to copy coupon code. Please try again.',
+                    });
+                });
+            }
+            
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+    
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+    
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+        </script>
+            
+</body>
+
+</html>

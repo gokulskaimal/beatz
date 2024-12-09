@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beatz Admin - Categories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker { background-color: #0a0a0a; }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-black text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-[#111] p-4">
+            <%- include('../partials/adminHeader') %>
+          </div>
+        <!-- Main Content -->
+        <div class="flex-1 p-8 bg-darker">
+            <div class="flex justify-between items-center mb-8">
+                <button
+                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                    onclick="showAddCategoryModal()">
+                    Add New Category
+                </button>
+                <div class="relative">
+                    <input id="searchInput"
+                        class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="Search for categories" />
+                </div>
+            </div>
+
+            <!-- Categories Table -->
+            <div class="bg-[#111] rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-800">
+                            <th class="text-left p-4 text-orange-500">Sl. No.</th>
+                            <th class="text-left p-4 text-orange-500">Category</th>
+                            <th class="text-left p-4 text-orange-500">Description</th>
+                            <th class="text-left p-4 text-orange-500">Status</th>
+                            <th class="text-left p-4 text-orange-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% categories.forEach((category, index)=> { %>
+                            <tr class="border-b border-gray-800">
+                                <td class="p-4">
+                                    <%= index + 1 %>
+                                </td>
+                                <td class="p-4">
+                                    <%= category.name %>
+                                </td>
+                                <td class="p-4">
+                                    <%= category.description || '-' %>
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="<%= category.status === 'Active' ? 'text-green-500' : 'text-red-500' %>">
+                                        <%= category.status%>
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex gap-2">
+                                        <button data-id="<%= category._id %>"
+                                            onclick="showEditCategoryModal('<%= category._id %>')"
+                                            class="editCategory bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">Edit</button>
+                                        <button data-id="<%= category._id %>"
+                                            class="deleteCategory bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 flex justify-center">
+        <nav class="inline-flex">
+            <% if (currentPage> 1) { %>
+                <a href="/admin/categories?page=<%= currentPage - 1 %>"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+                <% } %>
+                    <% for (let i=1; i <=totalPages; i++) { %>
+                        <a href="/admin/categories?page=<%= i %>"
+                            class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+                            <%= i %>
+                        </a>
+                        <% } %>
+                            <% if (currentPage < totalPages) { %>
+                                <a href="/admin/categories?page=<%= currentPage + 1 %>"
+                                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                                <% } %>
+        </nav>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-[#111] p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4 text-orange-500">Add New Category</h2>
+            <form id="addCategoryForm" action="/admin/categories/" method="POST" class="space-y-4">
+                <div>
+                    <label class="block mb-1 text-sm">Category Name</label>
+                    <input type="text" name="name" required
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+                <div>
+                    <label class="block mb-1 text-sm">Description</label>
+                    <textarea name="description" rows="3"
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block mb-1 text-sm">Status</label>
+                    <select name="status" required
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="Active">Active</option>
+                        <option value="InActive">InActive</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md">Add Category</button>
+                    <button type="button" onclick="closeAddCategoryModal()" class="text-gray-400">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div id="editCategoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-[#111] p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4 text-orange-500">Edit Category</h2>
+            <form id="editCategoryForm" action="/admin/categories/" method="POST" class="space-y-4">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="id" id="editCategoryId">
+                <div>
+                    <label class="block mb-1 text-sm">Category Name</label>
+                    <input type="text" name="name" id="editCategoryName" required
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+                <div>
+                    <label class="block mb-1 text-sm">Description</label>
+                    <textarea name="description" id="editCategoryDescription" rows="3"
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block mb-1 text-sm">Status</label>
+                    <select name="status" id="editCategoryStatus" required
+                        class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="Active">Active</option>
+                        <option value="InActive">InActive</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md">Save Changes</button>
+                    <button type="button" onclick="closeEditCategoryModal()" class="text-gray-400">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        function showAddCategoryModal() {
+            document.getElementById('addCategoryModal').classList.remove('hidden');
+        }
+
+        function closeAddCategoryModal() {
+            document.getElementById('addCategoryModal').classList.add('hidden');
+        }
+
+        function showEditCategoryModal(categoryId) {
+            const category = document.querySelector(`button[data-id="${categoryId}"]`).closest('tr').querySelectorAll('td');
+            document.getElementById('editCategoryId').value = categoryId;
+            document.getElementById('editCategoryName').value = category[1].textContent.trim();
+            document.getElementById('editCategoryDescription').value = category[2].textContent.trim() === '-' ? '' : category[2].textContent.trim();
+            document.getElementById('editCategoryStatus').value = category[3].textContent.trim() === 'Active' ? 'Active' : 'InActive';
+
+            // Dynamically set the form action
+            document.getElementById('editCategoryForm').action = `/admin/categories/${categoryId}`;
+
+            document.getElementById('editCategoryModal').classList.remove('hidden');
+        }
+
+
+        function closeEditCategoryModal() {
+            document.getElementById('editCategoryModal').classList.add('hidden');
+        }
+
+        // Validation function
+        function validateCategoryForm(formData) {
+            const name = formData.get('name').trim();
+            const description = formData.get('description').trim();
+
+            if (!name) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name is required.',
+                });
+                return false;
+            }
+
+            if (name.length < 3 || name.length > 50) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name must be between 3 and 50 characters.',
+                });
+                return false;
+            }
+
+            if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name can only contain letters, numbers, and spaces.',
+                });
+                return false;
+            }
+
+            if (!description) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Description needed.',
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        // Add Category Form
+        document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            if (!validateCategoryForm(formData)) return;
+
+            const jsonData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+
+        // Edit Category Form
+        document.getElementById('editCategoryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            if (!validateCategoryForm(formData)) return;
+
+            const jsonData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+        // Delete Category
+document.querySelectorAll('.deleteCategory').forEach(button => {
+    button.addEventListener('click', async function () {
+        const categoryId = this.dataset.id;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f97316',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/categories/${categoryId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire(
+                            'Deleted!',
+                            result.message,
+                            'success'
+                        ).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            result.message,
+                            'error'
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'An unexpected error occurred.',
+                        'error'
+                    );
+                }
+            }
+        });
+    });
+});
+
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                        darker: '#121212',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+    <%- include('../partials/header',{ user}) %>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h1 class="text-3xl text-yellow-500 font-bold mb-6">Checkout</h1>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Delivery Address and Payment Options -->
+            <div class="bg-darker rounded-lg shadow-xl overflow-hidden flex-grow">
+                <div class="p-6">
+                    <h2 class="text-xl text-yellow-500 font-bold mb-4">Delivery Address</h2>
+                    <div id="addressList">
+                        <% addresses.forEach((address, index) => { %>
+                            <div class="w-full mt-2">
+                                <div id="addressBox-<%=address._id%>" class="bg-gray-800 border border-gray-700 rounded p-4 w-full shadow-md cursor-pointer" onclick="selectAddress('<%=address._id%>')">
+                                    <div class="flex justify-between items-center ml-6">
+                                        <span class="text-xs font-semibold uppercase bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                                            <%= address.addressType %>
+                                        </span>
+                                        <div class="flex space-x-4 text-gray-400">
+                                            <button type="button" title="Edit" class="flex items-center space-x-1 hover:text-blue-500" onclick="toggleEditAddressForm('<%=address._id%>'); event.stopPropagation();">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                                <span class="text-red-500">Edit</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 flex items-start space-x-3">
+                                        <input type="radio" name="selectedAddress" value="<%= address._id %>" class="mt-1" id="addressRadio-<%=index%>">
+                                        <label for="addressRadio-<%=index%>" class="text-gray-300 leading-relaxed">
+                                            <p class="font-semibold">
+                                                <span class="font-bold mr-4"><%= address.name %></span> <%= address.phone %>
+                                            </p>
+                                            <p class="w-[500px]">
+                                                <%= address.street %>, <%= address.city %>, <%= address.state %>, <%= address.country %> - 
+                                                <span class="font-bold"><%= address.zipCode %></span>
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- Edit Address Form - Hidden by default -->
+                                <div id="editAddressForm-<%=address._id%>" class="mt-4 hidden border bg-gray-800 rounded p-4 shadow-md">
+                                    <form onsubmit="updateAddress('<%=address._id%>'); return false;">
+                                        <div class="grid grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label for="edit-name-<%=address._id%>" class="sr-only">Name</label>
+                                                <input type="text" id="edit-name-<%=address._id%>" name="name" placeholder="Name" value="<%= address.name %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-phone-<%=address._id%>" class="sr-only">Phone number</label>
+                                                <input type="tel" id="edit-phone-<%=address._id%>" name="phone" placeholder="Phone number" value="<%= address.phone %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-zipCode-<%=address._id%>" class="sr-only">Zip Code</label>
+                                                <input type="text" id="edit-zipCode-<%=address._id%>" name="zipCode" placeholder="Zip Code" value="<%= address.zipCode %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-street-<%=address._id%>" class="sr-only">Street</label>
+                                                <input type="text" id="edit-street-<%=address._id%>" name="street" placeholder="Street" value="<%= address.street %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-city-<%=address._id%>" class="sr-only">City</label>
+                                                <input type="text" id="edit-city-<%=address._id%>" name="city" placeholder="City" value="<%= address.city %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-state-<%=address._id%>" class="sr-only">State</label>
+                                                <input type="text" id="edit-state-<%=address._id%>" name="state" placeholder="State" value="<%= address.state %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                            <div>
+                                                <label for="edit-country-<%=address._id%>" class="sr-only">Country</label>
+                                                <input type="text" id="edit-country-<%=address._id%>" name="country" placeholder="Country" value="<%= address.country %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <span class="block text-gray-400 ml-2">Address Type</span>
+                                            <label class="ml-2">
+                                                <input type="radio" name="addressType" value="Home" class="text-orange-500" <%= address.addressType === 'Home' ? 'checked' : '' %>> Home
+                                            </label>
+                                            <label class="ml-2">
+                                                <input type="radio" name="addressType" value="Work" class="text-orange-500" <%= address.addressType === 'Work' ? 'checked' : '' %>> Work
+                                            </label>
+                                        </div>
+                                        <div class="flex justify-end space-x-4 mt-4">
+                                            <button type="button" class="text-gray-300 font-semibold" onclick="toggleEditAddressForm('<%=address._id%>')">Cancel</button>
+                                            <button type="submit" class="bg-orange-600 text-white font-semibold px-8 py-2 rounded-md hover:bg-orange-700">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <!-- Add Address Button -->
+                    <button id="addAddressButton" type="button" class="bg-gray-700 font-semibold text-white w-full mt-2 py-2 rounded hover:bg-gray-600" onclick="toggleAddressForm()">
+                        <i class="fa-solid fa-plus fa-sm mr-2" aria-hidden="true"></i> <span class="text-blue-500">Add a new address</span>
+                    </button>
+
+                    <!-- Add Address Form - Hidden by default -->
+                    <div id="addressForm" class="mt-4 hidden border bg-gray-800 rounded p-4 shadow-md">
+                        <form id="addAddressForm">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="name" class="sr-only">Name</label>
+                                    <input type="text" id="name" name="name" placeholder="Name" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="nameError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+                                    <label for="phone" class="sr-only">Phone number</label>
+                                    <input type="tel" id="phone" name="phone" placeholder="Phone number" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="phoneError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+                                    <label for="zipCode" class="sr-only">Zip Code</label>
+                                    <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="zipCodeError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+<<<<<<< HEAD
+                                    <label for="street" class="sr-only">Street</label>
+=======
+>>>>>>> e4fc9aabc093b25cecd8ab7793ec4f5d550bf149
+                                    <input type="text" id="street" name="street" placeholder="Street" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="streetError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+                                    <label for="city" class="sr-only">City</label>
+                                    <input type="text" id="city" name="city" placeholder="City" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="cityError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+                                    <label for="state" class="sr-only">State</label>
+                                    <input type="text" id="state" name="state" placeholder="State" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="stateError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                                <div>
+                                    <label for="country" class="sr-only">Country</label>
+                                    <input type="text" id="country" name="country" placeholder="Country" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <p id="countryError" class="text-red-500 text-sm text-center"></p>
+                                </div>
+                            </div>
+
+                            <!-- Address Type Radio Buttons -->
+                            <div class="mb-4">
+                                <span class="block text-gray-400 ml-2">Address Type</span>
+                                <label class="ml-2">
+                                    <input type="radio" name="addressType" value="Home" class="text-orange-500"> Home
+                                </label>
+                                <label class="ml-2">
+                                    <input type="radio" name="addressType" value="Work" class="text-orange-500"> Work
+                                </label>
+                                <p id="addressTypeError" class="text-red-500 text-sm"></p>
+                            </div>
+
+                            <!-- Form Submit and Cancel Buttons -->
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" class="text-gray-300 font-semibold" onclick="cancelAddressForm()">Cancel</button>
+                                <button type="submit" class="bg-orange-600 text-white font-semibold px-8 py-2 rounded-md hover:bg-orange-700">Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="mt-8">
+                        <div class="w-full bg-gray-800 p-4 rounded mb-2">
+                            <h2 class="text-yellow-500 font-semibold">PAYMENT OPTIONS</h2>
+                        </div>
+                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer" onclick="selectPaymentMethod('Cash On Delivery')">
+                            <input type="radio" name="paymentMethod" value="Cash On Delivery" id="paymentCod" class="mr-2 text-orange-500">
+                            <label for="paymentCod" class="text-gray-300">Cash on Delivery</label>
+                        </div>
+                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer mt-2" onclick="selectPaymentMethod('Razorpay')">
+                            <input type="radio" name="paymentMethod" value="Razorpay" id="paymentRazorpay" class="mr-2 text-orange-500">
+                            <label for="paymentRazorpay" class="text-gray-300">Razorpay</label>
+                        </div>
+                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer mt-2" onclick="selectPaymentMethod('Wallet')">
+                            <input type="radio" name="paymentMethod" value="Wallet" id="paymentWallet" class="mr-2 text-orange-500">
+                            <label for="paymentWallet" class="text-gray-300">Wallet (Balance: ₹<span id="walletBalance">0.00</span>)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="bg-darker sticky top-24 rounded-lg shadow-xl p-6 md:w-1/3">
+                <h2 class="text-xl text-yellow-500 font-bold mb-4">Order Summary</h2>
+                <div id="orderSummary">
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <% cart.items.forEach(item => { %> 
+                            <div id="cart-item-<%=item.product._id %>" class="flex gap-4 bg-gray-800 px-4 py-6 mb-2 rounded-md border border-gray-700 shadow-[0_2px_12px_-3px_rgba(6,81,237,0.3)]">
+                                <div class="flex gap-4">
+                                    <a href="/user/product/<%= item.product._id %>">
+                                        <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0">
+                                            <% if (item.product && item.product.image && item.product.image.length > 0) { %>
+                                                <img src='<%= item.product.image[0] %>' alt="<%= item.product.product_name%>" class="w-full h-full object-contain" />
+                                            <% } else { %>
+                                                <div class="w-full h-full bg-gray-300 flex items-center justify-center text-gray-500">No Image</div>
+                                            <% } %>
+                                        </div>
+                                    </a>
+                                    
+                                    <div class="flex flex-col gap-4">
+                                        <div>
+                                            <h3 class="text-base font-bold text-gray-200"><%= item.product.product_name %></h3>
+                                            <p class="text-sm font-semibold text-gray-400 mt-2 flex items-center gap-2">
+                                                <%= item.product.specifications.brand %>, <%= item.product.specifications.color %>
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <h4>
+                                                <span id="original-price-<%=item.product._id%>" class="text-gray-400 line-through" data-base-price="<%= item.product.price %>">
+                                                    <span>&#8377;</span><%= item.product.price * item.quantity %>
+                                                </span>
+                                                <span id="discount-price-<%=item.product._id%>" class="text-lg font-bold ml-2 text-white" data-base-price="<%= item.product.discountPrice %>">
+                                                    <span class="text-red-500">&#8377;</span><%= item.product.discountPrice * item.quantity %>
+                                                </span>
+                                                <span class="text-green-500 font-semibold ml-2"><%= item.product.discount %>% off</span>
+                                            </h4>
+
+                                            <h3 class="text-gray-400 font-semibold text-sm">
+                                                Quantity  <span class="text-white"><%= item.quantity %></span>
+                                            </h3>
+                                        </div>
+
+                                        <!-- Add offer details -->
+                                        <% if (item.offerDetails && item.offerDetails.length > 0) { %>
+                                            <div class="text-sm text-green-500">
+                                                <h4 class="font-semibold">Applied Offers:</h4>
+                                                <ul>
+                                                    <% item.offerDetails.forEach(offer => { %>
+                                                        <li><%= offer.type %>: <%= offer.description %> (₹<%= offer.discountAmount.toFixed(2) %> off)</li>
+                                                    <% }) %>
+                                                </ul>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="text-gray-400">Your cart is empty.</p>
+                    <% } %>
+                </div>
+                <ul class="text-gray-300 space-y-4 mt-4">
+                    <li class="flex flex-wrap gap-4 text-sm">Subtotal (<%=totalItems%> <%= totalItems > 1 ? 'items' :' item' %>)<span class="ml-auto font-semibold"><span class=" text-red-500">&#8377;</span><span id="totalPrice"><%= totalPrice %></span>.00</span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Product Discount <span class="ml-auto font-semibold text-green-500"><i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span class="product-discount"><%= discount %></span></span></li>
+                    <li id="couponDiscountLine" class="flex flex-wrap gap-4 text-sm <%= !appliedCoupon ? 'hidden' : '' %>">
+                        Coupon Discount 
+                        <span class="ml-auto font-semibold text-green-500">
+                            <i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span id="couponDiscountAmount"><%= appliedCoupon ? appliedCoupon.discount : 0 %></span>
+                        </span>
+                    </li>
+                    <li class="flex flex-wrap gap-4 text-sm">Delivery Charges<span class="ml-auto font-semibold text-green-500"><span class="line-through text-gray-500"><span>&#8377;</span>40</span> Free</span></li>
+                    <hr class="border-gray-700" />
+                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total Amount<span class="ml-auto "><span class="text-red-500">&#8377;</span><span id="totalDiscountPrice"><%= totalDiscountPrice %></span></span></li>
+                </ul>
+
+                <!-- Coupon Section -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-2">Apply Coupon</h3>
+                    <div class="flex">
+                        <select id="couponSelect" class="bg-gray-700 border border-gray-600 p-2 rounded-l w-full text-white" <%= appliedCoupon ? 'disabled' : '' %>>
+                            <option value="">Select a coupon</option>
+                            <% if (availableCoupons && availableCoupons.length > 0) { %>
+                                <% availableCoupons.forEach(coupon => { %>
+                                    <option value="<%= coupon.code %>" <%= (appliedCoupon && appliedCoupon.code === coupon.code) ? 'selected' : '' %>>
+                                        <%= coupon.code %> - <%= coupon.couponType === 'Percentage' ? `${coupon.couponValue}% off` : `₹${coupon.couponValue} off` %>
+                                    </option>
+                                <% }) %>
+                            <% } %>
+                        </select>
+                        <button id="applyCouponBtn" onclick="applyCoupon()" class="bg-orange-600 text-white font-semibold px-4 py-2 rounded-r hover:bg-orange-700" <%= appliedCoupon ? 'disabled' : '' %>>Apply</button>
+                    </div>
+                    <p id="couponMessage" class="mt-2 text-sm"></p>
+                    <button id="removeCouponBtn" onclick="removeCoupon()" class="mt-2 text-sm text-red-500 <%= appliedCoupon ? '' : 'hidden' %>">Remove Coupon</button>
+                </div>
+
+                <div class="mt-8 space-y-2">
+                    <button type="button" class="text-sm px-4 py-2.5 w-full font-semibold tracking-wide bg-yellow-600 hover:bg-yellow-700 text-black rounded-md" onclick="placeOrder()">PLACE ORDER</button>
+                </div>
+
+                <div class="w-full py-2">
+                    <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= discount + (appliedCoupon ? appliedCoupon.discount : 0) %></span> on this order</h3>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/footer') %>
+
+    <script>
+    function hideAllForms() {
+        const addForm = document.getElementById("addressForm");
+        const addButton = document.getElementById("addAddressButton");
+        if (addForm && !addForm.classList.contains("hidden")) {
+            addForm.classList.add("hidden");
+            addButton.classList.remove("hidden");
+        }
+    
+        const editForms = document.querySelectorAll('[id^="editAddressForm-"]');
+        const addressBoxes = document.querySelectorAll('[id^="addressBox-"]');
+    
+        editForms.forEach((form) => {
+            form.classList.add("hidden");
+        });
+        addressBoxes.forEach((box) => {
+            box.classList.remove("hidden");
+        });
+    }
+    
+    function toggleAddressForm() {
+        hideAllForms();
+    
+        const form = document.getElementById("addressForm");
+        const button = document.getElementById("addAddressButton");
+    
+        if (form.classList.contains("hidden")) {
+            form.classList.remove("hidden");
+            button.classList.add("hidden");
+        } else {
+            form.classList.add("hidden");
+            button.classList.remove("hidden");
+        }
+    }
+    
+    function toggleEditAddressForm(addressId) {
+        const form = document.getElementById(`editAddressForm-${addressId}`);
+        const addressBox = document.getElementById(`addressBox-${addressId}`);
+
+        if (form && addressBox) {
+            if (form.classList.contains("hidden")) {
+                form.classList.remove("hidden");
+                addressBox.classList.add("hidden");
+            } else {
+                form.classList.add("hidden");
+                addressBox.classList.remove("hidden");
+            }
+        }
+    }
+    
+    function cancelAddressForm() {
+        document.getElementById("addressForm").classList.add("hidden");
+        document.getElementById("addAddressButton").classList.remove("hidden");
+    }
+    
+    function selectAddress(addressId) {
+        document.querySelector(`input[name="selectedAddress"][value="${addressId}"]`).checked = true;
+    }
+    
+    function selectPaymentMethod(method) {
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
+            input.checked = input.value === method;
+        });
+    }
+    
+    async function placeOrder() {
+        const selectedAddressId = document.querySelector('input[name="selectedAddress"]:checked');
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+
+        if (!selectedAddressId) {
+            Swal.fire('Error', 'Please select a delivery address.', 'error');
+            return;
+        }
+        if (!paymentMethod) {
+            Swal.fire('Error', 'Please select a payment method.', 'error');
+            return;
+        }
+
+        const addressId = selectedAddressId.value;
+        const method = paymentMethod.value;
+        
+        try {
+            const response = await fetch('/user/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ addressId, paymentMethod: method })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                if (method === 'Razorpay') {
+                    handleRazorpayPayment(result.order);
+                } else if (method === 'Cash On Delivery' || method === 'Wallet') {
+                    window.location.href = `/user/confirmation/${result.orderId}`;
+                }
+            } else {
+                Swal.fire('Error', result.message, 'error');
+            }
+        } catch (error) {
+            console.error("Error placing order:", error);
+            Swal.fire('Error', 'An error occurred while placing your order. Please try again.', 'error');
+        }
+    }
+    
+    async function updateAddress(addressId) {
+        const form = document.querySelector(`#editAddressForm-${addressId} form`);
+        if (!form) {
+            console.error(`Form not found for address ID: ${addressId}`);
+            return;
+        }
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(`/user/address/edit/${addressId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire('Success', 'Address updated successfully', 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', result.message, 'error');
+            }
+        } catch (error) {
+            console.error("Error updating address:", error);
+            Swal.fire('Error', 'An error occurred while updating the address. Please try again.', 'error');
+        }
+    }
+
+    async function applyCoupon() {
+        const couponSelect = document.getElementById('couponSelect');
+        const couponCode = couponSelect.value;
+        if (!couponCode) {
+            document.getElementById('couponMessage').textContent = 'Please select a coupon';
+            document.getElementById('couponMessage').className = 'mt-2 text-sm text-red-500';
+            return;
+        }
+
+        try {
+            const response = await fetch('/user/apply-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ couponCode })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('couponMessage').textContent = `Coupon applied successfully! You saved ₹${result.discount || 0}`;
+                document.getElementById('couponMessage').className = 'mt-2 text-sm text-green-500';
+                document.getElementById('totalDiscountPrice').textContent = (result.newTotal || 0).toFixed(2);
+                document.getElementById('couponDiscountAmount').textContent = (result.discount || 0).toFixed(2);
+                document.getElementById('couponDiscountLine').classList.remove('hidden');
+                const totalDiscountElement = document.querySelector('.total-discount');
+                if (totalDiscountElement) {
+                    const productDiscount = parseFloat(document.querySelector('.product-discount').textContent);
+                    totalDiscountElement.textContent = (productDiscount + (result.discount || 0)).toFixed(2);
+                }
+                document.getElementById('removeCouponBtn').classList.remove('hidden');
+                document.getElementById('couponSelect').disabled = true;
+                document.getElementById('applyCouponBtn').disabled = true;
+            } else {
+                document.getElementById('couponMessage').textContent = result.message || 'Error applying coupon';
+                document.getElementById('couponMessage').className = 'mt-2 text-sm text-red-500';
+            }
+        } catch (error) {
+            console.error("Error applying coupon:", error);
+            document.getElementById('couponMessage').textContent = 'An error occurred while applying the coupon. Please try again.';
+            document.getElementById('couponMessage').className = 'mt-2 text-sm text-red-500';
+        }
+    }
+
+    async function removeCoupon() {
+        try {
+            const response = await fetch('/user/remove-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('couponMessage').textContent = 'Coupon removed successfully';
+                document.getElementById('couponMessage').className = 'mt-2 text-sm text-green-500';
+                document.getElementById('totalDiscountPrice').textContent = result.newTotal.toFixed(2);
+                document.getElementById('couponDiscountLine').classList.add('hidden');
+                document.getElementById('couponDiscountAmount').textContent = '0';
+                const totalDiscountElement = document.querySelector('.total-discount');
+                if (totalDiscountElement) {
+                    const productDiscount = parseFloat(document.querySelector('.product-discount').textContent);
+                    totalDiscountElement.textContent = productDiscount.toFixed(2);
+                }
+                document.getElementById('removeCouponBtn').classList.add('hidden');
+                document.getElementById('couponSelect').value = '';
+                document.getElementById('couponSelect').disabled = false;
+                document.getElementById('applyCouponBtn').disabled = false;
+            } else {
+                document.getElementById('couponMessage').textContent = result.message;
+                document.getElementById('couponMessage').className = 'mt-2 text-sm text-red-500';
+            }
+        } catch (error) {
+            console.error("Error removing coupon:", error);
+            document.getElementById('couponMessage').textContent = 'An error occurred while removing the coupon. Please try again.';
+            document.getElementById('couponMessage').className = 'mt-2 text-sm text-red-500';
+        }
+    }
+
+    function handleRazorpayPayment(order) {
+        const options = {
+            key: '<%= process.env.RAZORPAY_KEY_ID %>',
+            amount: order.amount,
+            currency: order.currency,
+            name: 'Your Store Name',
+            description: 'Purchase',
+            order_id: order.id,
+            handler: function (response) {
+                verifyPayment(response, order);
+            },
+            prefill: {
+                name: '<%= user.firstName %> <%= user.lastName %>',
+                email: '<%= user.email %>',
+                contact: '<%= user.phone %>'
+            },
+            theme: {
+                color: '#F97316'
+            }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+
+    async function verifyPayment(paymentResponse, order) {
+        try {
+            const response = await fetch('/user/order/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentResponse, order })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.href = `/user/confirmation/${result.orderId}`;
+            } else {
+                Swal.fire('Error', 'Payment verification failed. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error("Error verifying payment:", error);
+            Swal.fire('Error', 'An error occurred while verifying your payment. Please contact support.', 'error');
+        }
+    }
+
+    async function fetchWalletBalance() {
+        try {
+            const response = await fetch('/user/wallet-balance');
+            const data = await response.json();
+            document.getElementById('walletBalance').textContent = data.balance.toFixed(2);
+        } catch (error) {
+            console.error('Error fetching wallet balance:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('addAddressForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/user/address/add', {
+                method: 'POST',
+                body: JSON.stringify(Object.fromEntries(formData)),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const result = await response.json();
+            if (response.ok) {
+                Swal.fire('Success', result.message, 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Error', result.message, 'error');
+            }
+        });
+
+        const firstAddressRadio = document.querySelector('input[name="selectedAddress"]');
+        if (firstAddressRadio) {
+            firstAddressRadio.checked = true;
+        }
+
+        const appliedCoupon = '<%= appliedCoupon ? appliedCoupon.code : "" %>';
+        if (appliedCoupon) {
+            document.getElementById('couponSelect').disabled = true;
+            document.getElementById('applyCouponBtn').disabled = true;
+            document.getElementById('removeCouponBtn').classList.remove('hidden');
+            document.getElementById('couponMessage').textContent = 'Coupon applied successfully!';
+            document.getElementById('couponMessage').className = 'mt-2 text-sm text-green-500';
+        }
+
+        const firstPaymentMethod = document.querySelector('input[name="paymentMethod"]');
+        if (firstPaymentMethod) {
+            firstPaymentMethod.checked = true;
+        }
+
+        fetchWalletBalance();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const userIcon = document.getElementById('user-icon');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userIcon && userDropdown) {
+            // Toggle the dropdown menu visibility on click
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Hide the dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
+

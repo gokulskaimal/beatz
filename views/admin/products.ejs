@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beatz Admin Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            orange: {
+              500: "#f97316",
+              600: "#ea580c",
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+        .bg-darker {
+          background-color: #0a0a0a;
+        }
+      }
+    </style>
+</head>
+
+<body class="min-h-screen bg-black text-white">
+  <% const itemsPerPage = 10; %>
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-[#111] p-4">
+      <%- include('../partials/adminHeader') %>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8 bg-darker">
+      <div class="flex justify-between items-center mb-8">
+        <!-- Trigger Add Modal -->
+        <button onclick="toggleModal('add')"
+          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">
+          Add new Product
+        </button>
+        <div class="relative">
+          <input
+            class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Search for products" />
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="bg-[#111] rounded-lg overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-gray-800">
+              <th class="text-left p-4 text-orange-500">Sl. No</th>
+              <th class="text-left p-4 text-orange-500">Product</th>
+              <th class="text-left p-4 text-orange-500">Price</th>
+              <th class="text-left p-4 text-orange-500">Stock</th>
+              <th class="text-left p-4 text-orange-500">Category</th>
+              <th class="text-left p-4 text-orange-500">Status</th>
+              <th class="text-left p-4 text-orange-500">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% products.forEach((product,index)=> { %>
+              <tr class="border-b border-gray-800">
+                <td class="p-4"><%= (currentPage - 1) * itemsPerPage + index + 1 %></td>
+                <td class="p-4"><%= product.product_name %></td>
+                <td class="p-4">₹ <%= product.price %></td>
+                <td class="p-4">
+                  <span class="bg-[#222] px-3 py-1 rounded-full"><%= product.stock %></span>
+                </td>
+                <td class="p-4"><%= product.category.name %></td>
+                <td class="p-4">
+                  <span class="<%= product.isBlocked ? 'text-red-500' : 'text-green-500' %> font-semibold">
+                    <%= product.isBlocked ? 'Inactive' : 'Active' %>
+                  </span>
+                </td>
+                <td class="p-4">
+                  <div class="flex gap-2">
+                    <button onclick="editProduct('<%= JSON.stringify(product) %>')"
+                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      Edit
+                    </button>
+                    <button onclick="deleteProduct('<%= product._id %>')"
+                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      Remove
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center gap-2 mt-4">
+        <% if (currentPage > 1) { %>
+          <a href="?page=<%= currentPage - 1 %>" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Previous</a>
+        <% } %>
+        <% for (let i = 1; i <= Math.ceil(totalProducts / itemsPerPage); i++) { %>
+          <a href="?page=<%= i %>" class="<%= i === currentPage ? 'bg-orange-600' : 'bg-orange-500' %> hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200"><%= i %></a>
+        <% } %>
+        <% if (currentPage < Math.ceil(totalProducts / itemsPerPage)) { %>
+          <a href="?page=<%= currentPage + 1 %>" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Next</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div id="addProductModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
+  <div class="bg-[#111] text-white p-4 rounded-lg w-[700px]">
+    <h2 class="text-lg font-semibold text-orange-500 mb-3">Add Product</h2>
+    <form id="addProductForm" action="/admin/products" method="post" enctype="multipart/form-data">
+      <div class="flex gap-4">
+        <div class="w-1/2">
+          <!-- Left column -->
+          <!-- Product Name -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Product Name</label>
+            <input type="text" name="product_name" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Description -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Description</label>
+            <textarea name="description" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm h-16" required></textarea>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Category</label>
+            <select name="category" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+              <option value="">Select Category</option>
+              <% categories.forEach(category => { %>
+                <option value="<%= category.id %>"><%= category.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Price (₹)</label>
+            <input type="number" name="price" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Stock -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Stock</label>
+            <input type="number" name="stock" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+        </div>
+
+        <div class="w-1/2">
+          <!-- Right column -->
+          <!-- Specifications -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Brand</label>
+            <input type="text" name="brand" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Type</label>
+            <input type="text" name="type" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Color</label>
+            <input type="text" name="color" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Warranty</label>
+            <input type="text" name="warranty" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Discount -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Discount (%)</label>
+            <input type="number" name="discount" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" min="0" max="100" />
+          </div>
+
+          <!-- Rating -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Rating</label>
+            <input type="number" name="rating" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" min="1" max="5" step="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Images -->
+      <div class="mb-4">
+        <label class="block text-sm text-orange-500 mb-2">Images (3 minimum)</label>
+        <div class="flex gap-2">
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 0)" required />
+            <img id="imagePreview0" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder0" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 1)" required />
+            <img id="imagePreview1" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder1" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 2)" required />
+            <img id="imagePreview2" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder2" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-4 flex justify-between gap-2">
+        <button type="button" onclick="toggleModal('add')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Add Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- Edit Product Modal -->
+  <div id="editProductModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
+  <div class="bg-[#111] text-white p-4 rounded-lg w-[700px]">
+    <h2 class="text-lg font-semibold text-orange-500 mb-3">Edit Product</h2>
+    <form id="editProductForm" action="/admin/products" method="put" enctype="multipart/form-data">
+      <input type="hidden" id="editProductId" name="productId" />
+      <div class="flex gap-4">
+        <div class="w-1/2">
+          <!-- Left column -->
+          <!-- Product Name -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Product Name</label>
+            <input type="text" id="editProductName" name="product_name" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Description -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Description</label>
+            <textarea id="editProductDescription" name="description" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm h-16" required></textarea>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Category</label>
+            <select id="editProductCategory" name="category" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+              <option value="">Select Category</option>
+              <% categories.forEach(category => { %>
+                <option value="<%= category.id %>"><%= category.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <!-- Price -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Price (₹)</label>
+            <input type="number" id="editProductPrice" name="price" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Stock -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Stock</label>
+            <input type="number" id="editProductStock" name="stock" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+        </div>
+
+        <div class="w-1/2">
+          <!-- Right column -->
+          <!-- Specifications -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Brand</label>
+            <input type="text" id="editProductBrand" name="brand" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Type</label>
+            <input type="text" id="editProductType" name="type" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Color</label>
+            <input type="text" id="editProductColor" name="color" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Warranty</label>
+            <input type="text" id="editProductWarranty" name="warranty" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          </div>
+
+          <!-- Discount -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Discount (%)</label>
+            <input type="number" id="editProductDiscount" name="discount" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" min="0" max="100" />
+          </div>
+
+          <!-- Rating -->
+          <div class="mb-2">
+            <label class="block text-sm text-orange-500 mb-1">Rating</label>
+            <input type="number" id="editProductRating" name="rating" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" min="1" max="5" step="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Images -->
+      <div class="mb-4">
+        <label class="block text-sm text-orange-500 mb-2">Images (3 minimum)</label>
+        <div class="flex gap-2">
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 3)" />
+            <img id="imagePreview3" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder3" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 4)" />
+            <img id="imagePreview4" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder4" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+          <div class="relative w-24 h-24 bg-[#222] rounded-md overflow-hidden">
+            <input type="file" name="product_images" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(event, 5)" />
+            <img id="imagePreview5" class="w-full h-full object-cover hidden" alt="Preview" />
+            <p id="placeholder5" class="flex justify-center items-center text-gray-500 text-sm h-full">Upload</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-4 flex justify-between gap-2">
+        <button type="button" onclick="toggleModal('edit')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Update Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- Cropper Modal -->
+  <div id="cropperModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
+    <div class="bg-[#111] text-white p-4 rounded-lg w-[90%] max-w-lg">
+      <h2 class="text-lg font-semibold text-orange-500 mb-3">Crop Image</h2>
+      <div class="relative w-full aspect-square bg-black overflow-hidden">
+        <img id="cropperImage" src="" alt="Image for cropping" class="max-w-full" />
+      </div>
+      <div class="flex justify-between mt-4">
+        <button onclick="closeCropper()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">Cancel</button>
+        <button onclick="cropImage()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility Functions
+    const qs = (selector) => document.querySelector(selector);
+    const qsa = (selector) => document.querySelectorAll(selector);
+
+    // Toggle Modal (Add/Edit Product)
+    function toggleModal(mode) {
+      const addModal = qs("#addProductModal");
+      const editModal = qs("#editProductModal");
+      
+      if (mode === 'add') {
+        addModal.classList.toggle("hidden");
+        resetForm('addProductForm');
+      } else if (mode === 'edit') {
+        editModal.classList.toggle("hidden");
+      }
+    }
+
+    // Reset form and clear image previews
+    function resetForm(formId) {
+      qs(`#${formId}`).reset();
+      clearImagePreviews();
+    }
+
+    // Edit Product - Pre-fill form with product data
+    function editProduct(productData) {
+      const product = JSON.parse(productData);
+      qs("#editProductId").value = product._id;
+      qs("#editProductName").value = product.product_name;
+      qs("#editProductDescription").value = product.description;
+      qs("#editProductCategory").value = product.category._id;
+      qs("#editProductPrice").value = product.price;
+      qs("#editProductStock").value = product.stock;
+      qs("#editProductBrand").value = product.specifications.brand;
+      qs("#editProductType").value = product.specifications.type;
+      qs("#editProductColor").value = product.specifications.color;
+      qs("#editProductWarranty").value = product.specifications.warranty;
+      qs("#editProductDiscount").value = product.discount;
+      qs("#editProductRating").value = product.rating;
+
+      populateImagePreviews(product.image, 3);
+      toggleModal('edit');
+    }
+
+    // Populate image previews in the modal
+    function populateImagePreviews(images, startIndex) {
+      images.forEach((image, index) => {
+        const imagePreview = qs(`#imagePreview${startIndex + index}`);
+        const placeholder = qs(`#placeholder${startIndex + index}`);
+        if (imagePreview && placeholder) {
+          imagePreview.src = image;
+          imagePreview.classList.remove("hidden");
+          placeholder.classList.add("hidden"); 
+        }
+      });
+    }
+
+    // Delete Product
+    async function deleteProduct(productId) {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`/admin/products/${productId}`, {
+            method: "DELETE",
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            Swal.fire(
+              'Deleted!',
+              'The product has been deleted.',
+              'success'
+            ).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire(
+              'Error',
+              result.message || 'Failed to remove the product. Please try again.',
+              'error'
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting product:", error);
+          Swal.fire(
+            'Error',
+            'An error occurred. Please try again later.',
+            'error'
+          );
+        }
+      }
+    }
+
+    // Handle Form Submission (Add/Edit)
+    qs("#addProductForm").addEventListener("submit", handleFormSubmit);
+    qs("#editProductForm").addEventListener("submit", handleFormSubmit);
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const productId = formData.get("productId");
+      const method = productId ? "PUT" : "POST";
+      const url = productId ? `/admin/products/${productId}` : "/admin/products";
+
+      try {
+        const response = await fetch(url, {
+          method,
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: result.message,
+          }).then(() => {
+            toggleModal(productId ? 'edit' : 'add');
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Failed to save the product.',
+          });
+        }
+      } catch (error) {
+        console.error("Error saving product:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'An error occurred. Please try again later.',
+        });
+      }
+    }
+
+    // Preview Image
+    let cropper;
+    let activeInput;
+
+    function previewImage(event, index) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const cropperImage = qs("#cropperImage");
+        cropperImage.src = e.target.result;
+
+        activeInput = event.target;
+        qs("#cropperModal").classList.remove("hidden");
+
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(cropperImage, {
+          aspectRatio: 1,
+          viewMode: 2,
+          autoCropArea: 1,
+          movable: true,
+          zoomable: true,
+        });
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function cropImage() {
+      if (!cropper) return;
+
+      const croppedCanvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
+      const croppedImage = croppedCanvas.toDataURL();
+
+      const inputIndex = Array.from(qsa("[name='product_images']")).indexOf(activeInput);
+      const preview = qs(`#imagePreview${inputIndex}`);
+      const placeholder = qs(`#placeholder${inputIndex}`);
+
+      if (preview && placeholder) {
+        preview.src = croppedImage;
+        preview.classList.remove("hidden");
+        placeholder.classList.add("hidden");
+      }
+
+      croppedCanvas.toBlob((blob) => {
+        const file = new File([blob], "cropped-image.png", { type: "image/png" });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        activeInput.files = dataTransfer.files;
+      });
+
+      closeCropper();
+    }
+
+    function closeCropper() {
+      qs("#cropperModal").classList.add("hidden");
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+    }
+
+    // Clear Image Previews
+    function clearImagePreviews() {
+      qsa("[id^='imagePreview']").forEach((preview) => {
+        preview.src = "";
+        preview.classList.add("hidden");
+      });
+
+      qsa("[id^='placeholder']").forEach((placeholder) => {
+        placeholder.classList.remove("hidden");
+      });
+    }
+
+    // Initialize SweetAlert2 for displaying messages
+    document.addEventListener("DOMContentLoaded", () => {
+      const message = qs("#message").value;
+      if (message) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Message',
+          text: message,
+          timer: 3000,
+          timerProgressBar: true,
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

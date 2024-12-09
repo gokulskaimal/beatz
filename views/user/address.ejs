@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Address Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFB800',
+                        darker: '#121212',
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-white">
+    <%- include('../partials/header',{ user}) %>
+    <div class="container mx-auto p-6 flex gap-8">
+        <%- include('../partials/userSideBar') %>
+
+        <div class="flex-1">
+            <div class="rounded-lg border border-none p-6 h-full bg-darker">
+                <h1 class="text-2xl font-bold text-gold mb-8">Address Management</h1>
+
+                <div id="addressList" class="space-y-4">
+                    <% addresses.forEach(address => { %>
+                    <div class="p-4 bg-gray-800 border border-gray-700 rounded-lg">
+                        <h2 class="text-lg font-semibold">
+                            <%= address.name %>
+                        </h2>
+                        <p class="text-sm text-gray-400">
+                            <strong>Type:</strong> <%= address.addressType %><br>
+                            <%= address.street %>, <%= address.city %>, <%= address.state %> - <%= address.zipCode %>,
+                            <%= address.country %><br>
+                            <strong>Phone:</strong> <%= address.phone %>
+                        </p>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="openEditAddressModal('<%= address._id %>')"
+                                class="text-sm text-gold hover:underline">Edit</button>
+                            <button onclick="confirmDeleteAddress('<%= address._id %>')"
+                                class="text-sm text-red-500 hover:underline">Delete</button>
+                        </div>
+                    </div>
+                    <% }) %>
+                </div>
+
+                <button onclick="openAddAddressModal()"
+                    class="mt-6 w-full bg-black border border-none text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
+                    Add New Address
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Address Modal -->
+    <div id="addressModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+        <div class="bg-gray-800 p-6 rounded-lg w-96">
+            <h2 id="modalTitle" class="text-lg font-bold text-gold mb-4">Add Address</h2>
+            <form id="addressForm">
+                <input type="hidden" id="addressId" name="addressId">
+                <div class="space-y-4">
+                    <input type="text" id="name" name="name" placeholder="Name" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <select id="addressType" name="addressType" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        <option value="" disabled selected>Select Type</option>
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="street" name="street" placeholder="Street" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <input type="text" id="city" name="city" placeholder="City" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <input type="text" id="state" name="state" placeholder="State" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <input type="text" id="country" name="country" placeholder="Country" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <input type="tel" id="phone" name="phone" placeholder="Phone Number" required
+                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                </div>
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button type="button" onclick="closeAddressModal()"
+                        class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">Cancel</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-gold text-black rounded hover:bg-yellow-400">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    let addresses = <%- JSON.stringify(addresses) %>;
+
+    function openAddAddressModal() {
+        document.getElementById('modalTitle').textContent = 'Add Address';
+        document.getElementById('addressId').value = '';
+        document.getElementById('addressForm').reset();
+        document.getElementById('addressModal').classList.remove('hidden');
+    }
+
+    function openEditAddressModal(addressId) {
+        const address = addresses.find(addr => addr._id === addressId);
+        if (!address) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Address not found.',
+            });
+            return;
+        }
+
+        document.getElementById('modalTitle').textContent = 'Edit Address';
+        document.getElementById('addressId').value = addressId;
+        document.getElementById('name').value = address.name;
+        document.getElementById('addressType').value = address.addressType;
+        document.getElementById('street').value = address.street;
+        document.getElementById('city').value = address.city;
+        document.getElementById('state').value = address.state;
+        document.getElementById('zipCode').value = address.zipCode;
+        document.getElementById('country').value = address.country;
+        document.getElementById('phone').value = address.phone;
+
+        document.getElementById('addressModal').classList.remove('hidden');
+    }
+
+    function closeAddressModal() {
+        document.getElementById('addressModal').classList.add('hidden');
+    }
+
+    async function handleAddressFormSubmit(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const addressId = formData.get('addressId');
+        const isEdit = !!addressId;
+
+        try {
+            const response = await fetch(isEdit ? `/user/address/edit/${addressId}` : '/user/address/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.fromEntries(formData))
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: result.message,
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message,
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An unexpected error occurred. Please try again.',
+            });
+        }
+    }
+
+    async function confirmDeleteAddress(addressId) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/user/address/delete/${addressId}`, {
+                    method: 'POST',
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    Swal.fire(
+                        'Deleted!',
+                        result.message,
+                        'success'
+                    ).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire(
+                        'Error!',
+                        result.message,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire(
+                    'Error!',
+                    'An unexpected error occurred. Please try again.',
+                    'error'
+                );
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('addressForm').addEventListener('submit', handleAddressFormSubmit);
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+                        const userIcon = document.getElementById('user-icon');
+                        const userDropdown = document.getElementById('user-dropdown');
+
+                        // Toggle the dropdown menu visibility on click
+                        userIcon.addEventListener('click', () => {
+                            userDropdown.classList.toggle('hidden');
+                        });
+
+                        // Hide the dropdown when clicking outside
+                        document.addEventListener('click', (e) => {
+                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                                userDropdown.classList.add('hidden');
+                            }
+                        });
+                    });
+    </script>
+</body>
+
+</html>
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Personal Information</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#FFB800',
+                        darker: '#121212',
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="min-h-screen bg-gray-900 text-white">
+    <%- include('../partials/header',{ user}) %>
+        <div class="container mx-auto p-6 flex gap-8">
+            <!-- Sidebar -->
+
+            <%- include('../partials/userSideBar') %>
+                <!-- Main Content -->
+                <div class="flex-1">
+                    <div class="rounded-lg border border-none p-6 h-full bg-darker">
+                        <h1 class="text-2xl font-bold text-gold mb-8">Personal Information</h1>
+
+                        <form id="profileForm" action="/user/profile/update" method="POST" class="max-w-md space-y-6">
+                            <div class="space-y-2">
+                                <label for="firstName" class="block text-sm text-gray-400">First Name</label>
+                                <input type="text" id="firstName" name="firstName" value="<%= user.firstName %>"
+                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                <p id="firstNameError" class="text-xs text-red-500 hidden">First name is required and
+                                    must be alphabetic.</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="lastName" class="block text-sm text-gray-400">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" value="<%= user.lastName %>"
+                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                <p id="lastNameError" class="text-xs text-red-500 hidden">Last name is required and must
+                                    be alphabetic.</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="email" class="block text-sm text-gray-400">Email Address</label>
+                                <input type="email" id="email" name="email" value="<%= user.email %>"
+                                    class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 text-gray-400 cursor-not-allowed"
+                                    disabled>
+                                <p class="text-xs text-red-500 mt-1">Email cannot be changed directly. Please contact
+                                    support for assistance.</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label for="phone" class="block text-sm text-gray-400">Phone no</label>
+                                <input type="tel" id="phone" name="phone" value="<%= user.phone %>"
+                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                <p id="phoneError" class="text-xs text-red-500 hidden">Phone number is required and must
+                                    be a valid 10-digit number.</p>
+                            </div>
+
+                            <button type="submit"
+                                class="w-full bg-black border border-none text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
+                                Update
+                            </button>
+                        </form>
+                    </div>
+                </div>
+        </div>
+        <%- include('../partials/footer') %>
+
+            <% if (message) { %>
+                <script>
+                    Swal.fire({
+                        icon: '<%= message.includes("successfully") ? "success" : "error" %>',
+                        title: '<%= message %>',
+                    });
+                </script>
+                <% } %>
+
+                    <script>
+                        document.getElementById("profileForm").addEventListener("submit", function (e) {
+                            let valid = true;
+
+                            // Validation for First Name
+                            const firstName = document.getElementById("firstName").value.trim();
+                            const firstNameError = document.getElementById("firstNameError");
+                            if (!firstName || !/^[a-zA-Z]+$/.test(firstName)) {
+                                firstNameError.classList.remove("hidden");
+                                valid = false;
+                            } else {
+                                firstNameError.classList.add("hidden");
+                            }
+
+                            // Validation for Last Name
+                            const lastName = document.getElementById("lastName").value.trim();
+                            const lastNameError = document.getElementById("lastNameError");
+                            if (!lastName || !/^[a-zA-Z]+$/.test(lastName)) {
+                                lastNameError.classList.remove("hidden");
+                                valid = false;
+                            } else {
+                                lastNameError.classList.add("hidden");
+                            }
+
+                            // Validation for Phone
+                            const phone = document.getElementById("phone").value.trim();
+                            const phoneError = document.getElementById("phoneError");
+                            if (!phone || !/^\d{10}$/.test(phone)) {
+                                phoneError.classList.remove("hidden");
+                                valid = false;
+                            } else {
+                                phoneError.classList.add("hidden");
+                            }
+
+                            if (!valid) {
+                                e.preventDefault(); // Prevent form submission if invalid
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Invalid Input",
+                                    text: "Please fix the errors in the form.",
+                                });
+                            }
+                        });
+                        document.addEventListener('DOMContentLoaded', () => {
+                        const userIcon = document.getElementById('user-icon');
+                        const userDropdown = document.getElementById('user-dropdown');
+
+                        // Toggle the dropdown menu visibility on click
+                        userIcon.addEventListener('click', () => {
+                            userDropdown.classList.toggle('hidden');
+                        });
+
+                        // Hide the dropdown when clicking outside
+                        document.addEventListener('click', (e) => {
+                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                                userDropdown.classList.add('hidden');
+                            }
+                        });
+                    });
+                        const message = document.getElementById('message').value;
+                        if (message) {
+                            alert(message);
+                        }
+                        // Image zoom functionality
+                        const imageZoom = document.getElementById('imageZoom');
+                        imageZoom.addEventListener('mousemove', (e) => {
+                            const { left, top, width, height } = imageZoom.getBoundingClientRect();
+                            const x = ((e.clientX - left) / width) * 100;
+                            const y = ((e.clientY - top) / height) * 100;
+                            imageZoom.style.setProperty('--zoom-x', `${x}%`);
+                            imageZoom.style.setProperty('--zoom-y', `${y}%`);
+                        });
+                        document.addEventListener('DOMContentLoaded', () => {
+                        const userIcon = document.getElementById('user-icon');
+                        const userDropdown = document.getElementById('user-dropdown');
+
+                        // Toggle the dropdown menu visibility on click
+                        userIcon.addEventListener('click', () => {
+                            userDropdown.classList.toggle('hidden');
+                        });
+
+                        // Hide the dropdown when clicking outside
+                        document.addEventListener('click', (e) => {
+                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                                userDropdown.classList.add('hidden');
+                            }
+                        });
+                    });
+                    </script>
+</body>
+
+</html>

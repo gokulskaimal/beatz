@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Beatz</title>
+  <link href="/css/output.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --primary-orange: #FF8A00;
+      --dark-bg: #0A0A0A;
+      --card-bg: #111111;
+      --input-bg: rgba(0, 0, 0, 0.7);
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--dark-bg);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header-container {
+      background-color: var(--dark-bg);
+      padding: 1rem 2rem;
+    }
+    
+    .logo {
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .logo span {
+      color: var(--primary-orange);
+    }
+    
+    .input-field {
+      background-color: var(--input-bg);
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: white;
+      padding: 0.75rem 1rem;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      border-color: var(--primary-orange);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(255, 138, 0, 0.2);
+    }
+    
+    .login-card {
+      background-color: var(--card-bg);
+      border-radius: 24px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-btn {
+      background-color: var(--primary-orange);
+      color: black;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .login-btn:hover {
+      background-color: #FF9D2E;
+    }
+    
+    .form-label {
+      color: var(--primary-orange);
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header-container">
+    <div class="flex justify-between items-center">
+      <h1 class="logo">
+        <span>b</span>eatz
+      </h1>
+      <div class="text-white">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg> -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex items-center justify-center p-4" style="margin: auto;">
+    <div class="login-card">
+      <h2 class="text-center text-[#FF8A00] text-2xl font-bold mb-8" style="
+      color: red;
+      margin-bottom: 40px;
+  ">
+        ADMIN LOGIN
+      </h2>
+      
+      <form action="/admin/login" method="POST" class="space-y-6">
+        <% if (error) { %>
+          <p class="text-red-500 text-sm text-center mb-4"><%= error %></p>
+        <% } %>
+        
+        <div class="space-y-2">
+          <label for="email" class="form-label">
+            Enter Email
+          </label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required
+            class="input-field"
+            autocomplete="email"
+            value="admin@gmail.com"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="password" class="form-label">
+            Password
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required
+            class="input-field"
+            autocomplete="current-password"
+            value="Admin@1234"
+          >
+        </div>
+
+        <button type="submit" class="login-btn mt-8">
+          LOGIN
+        </button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

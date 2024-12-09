@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                        darker: '#121212',
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+    <%- include('../partials/header',{ user}) %>
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">All Products</h1>
+        <h1 class="mb-6">
+            <ol class="list-none p-0 inline-flex">
+                <li class="flex items-center text-gray-400">
+                    <a href="/user/home" class="hover:text-orange-500 transition-colors">Home</a>
+                    <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                        <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
+                    </svg>
+                </li>
+                <li class="flex items-center text-gray-400">
+                    <a href="/user/allProducts" class="hover:text-orange-500 transition-colors">All Products</a>
+                    <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                        <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
+                    </svg>
+                </li>
+            </ol>
+        </h1>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Filters Sidebar -->
+            <div class="md:w-1/4">
+                <form id="filterForm" class="bg-darker p-6 rounded-lg shadow-lg">
+                    <div class="mb-6">
+                        <label for="search" class="block mb-2 text-sm font-medium text-gray-300">Search</label>
+                        <input type="text" id="search" name="search" value="<%= search %>"
+                            class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    </div>
+                    <div class="mb-6">
+                        <label for="category" class="block mb-2 text-sm font-medium text-gray-300">Category</label>
+                        <select id="category" name="category"
+                            class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">All Categories</option>
+                            <% categories.forEach(cat => { %>
+                                <option value="<%= cat._id %>" <%= category === cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label for="brand" class="block mb-2 text-sm font-medium text-gray-300">Brand</label>
+                        <select id="brand" name="brand"
+                            class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">All Brands</option>
+                            <% brands.forEach(brand => { %>
+                                <option value="<%= brand %>" <%= selectedBrand === brand ? 'selected' : '' %>><%= brand %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label for="priceRange" class="block mb-2 text-sm font-medium text-gray-300">Price Range</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="number" id="minPrice" name="minPrice" value="<%= minPrice %>" placeholder="Min"
+                                class="w-1/2 bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <input type="number" id="maxPrice" name="maxPrice" value="<%= maxPrice %>" placeholder="Max"
+                                class="w-1/2 bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label for="rating" class="block mb-2 text-sm font-medium text-gray-300">Minimum Rating</label>
+                        <input type="range" id="rating" name="rating" min="1" max="5" step="0.1" value="<%= rating %>"
+                            class="w-full bg-gray-800 rounded-lg appearance-none cursor-pointer">
+                        <span id="ratingValue" class="text-sm text-gray-400"></span>
+                    </div>
+                    <div class="mb-6">
+                        <label for="sort" class="block mb-2 text-sm font-medium text-gray-300">Sort By</label>
+                        <select id="sort" name="sort" class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>Newest</option>
+                            <option value="price_asc" <%= sort === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="price_desc" <%= sort === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="rating" <%= sort === 'rating' ? 'selected' : '' %>>Highest Rated</option>
+                        </select>
+                    </div>
+                    <button type="button" id="resetFilters"
+                        class="w-full bg-gray-700 text-white font-bold px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300">
+                        Reset Filters
+                    </button>
+                </form>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="flex-1">
+                <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <% products.forEach(product => { %>
+                        <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full">
+                            <img src="<%= product.image[0] %>" alt="<%= product.product_name %>" class="w-full h-48 object-cover">
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h3 class="font-semibold text-lg mb-2"><%= product.product_name %></h3>
+                                <p class="text-gray-400 text-sm mb-2 flex-grow"><%= product.description.substring(0, 100) %>...</p>
+                                <p class="text-gray-400 text-sm mb-2">Brand: <%= product.specifications.brand %></p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white font-bold"><span class="text-red-500 font-bold">₹</span><%= product.discountPrice %></span>
+                                    <div class="flex items-center">
+                                        <% for (let i = 0; i < 5; i++) { %>
+                                            <svg class="w-4 h-4 <%= i < product.rating ? 'text-yellow-400' : 'text-gray-400' %> fill-current" viewBox="0 0 20 20">
+                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                                            </svg>
+                                        <% } %>
+                                        <span class="ml-1 text-sm text-gray-400">(<%= product.rating %>)</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-between items-center">
+                                    <a href="/user/product/<%= product._id %>" class="block w-3/4 bg-orange-500 text-center text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors duration-300">
+                                        View Details
+                                    </a>
+                                    <button onclick="toggleWishlist('<%= product._id %>')" class="wishlist-btn p-2 rounded-full hover:bg-gray-600 transition-colors duration-300" data-product-id="<%= product._id %>" data-in-wishlist="<%= product.isInWishlist %>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 <%= product.isInWishlist ? 'text-red-500 fill-current' : '' %>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+                <!-- Pagination -->
+                <div id="paginationLinks" class="mt-8 flex justify-center">
+                    <% if (totalPages > 1) { %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <a href="#" data-page="<%= i %>"
+                                class="mx-1 px-3 py-2 <%= currentPage === i ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-300' %> rounded">
+                                <%= i %>
+                            </a>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const filterForm = document.getElementById('filterForm');
+                    const productGrid = document.getElementById('productGrid');
+                    const paginationLinks = document.getElementById('paginationLinks');
+                    const resetFiltersButton = document.getElementById('resetFilters');
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterForm = document.getElementById('filterForm');
+            const productGrid = document.getElementById('productGrid');
+            const paginationLinks = document.getElementById('paginationLinks');
+            const resetFiltersButton = document.getElementById('resetFilters');
+            const ratingInput = document.getElementById('rating');
+            const ratingValue = document.getElementById('ratingValue');
+
+            function updateProducts(url) {
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    productGrid.innerHTML = data.products.map(product => `
+                        <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full">
+                            <img src="${product.image[0]}" alt="${product.product_name}" class="w-full h-48 object-cover">
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h3 class="font-semibold text-lg mb-2">${product.product_name}</h3>
+                                <p class="text-gray-400 text-sm mb-2 flex-grow">${product.description.substring(0, 100)}...</p>
+                                <p class="text-gray-400 text-sm mb-2">Brand: ${product.specifications.brand}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white font-bold"><span class="text-red-500 font-bold">₹</span>${product.discountPrice}</span>
+                                    <div class="flex items-center">
+                                        ${[...Array(5)].map((_, i) => `
+                                            <svg class="w-4 h-4 ${i < product.rating ? 'text-yellow-400' : 'text-gray-400'} fill-current" viewBox="0 0 20 20">
+                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                            </svg>
+                                        `).join('')}
+                                        <span class="ml-1 text-sm text-gray-400">(${product.rating})</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-between items-center">
+                                    <a href="/user/product/${product._id}" class="block w-3/4 bg-orange-500 text-center text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors duration-300">
+                                        View Details
+                                    </a>
+                                    <button onclick="toggleWishlist('${product._id}')" class="wishlist-btn p-2 rounded-full hover:bg-gray-600 transition-colors duration-300" data-product-id="${product._id}" data-in-wishlist="${product.isInWishlist}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${product.isInWishlist ? 'text-red-500 fill-current' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    paginationLinks.innerHTML = '';
+                    for (let i = 1; i <= data.totalPages; i++) {
+                        paginationLinks.innerHTML += `
+                            <a href="#" data-page="${i}" class="mx-1 px-3 py-2 ${data.currentPage === i ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-300'} rounded">
+                                ${i}
+                            </a>
+                        `;
+                    }
+
+                    // Re-attach event listeners to new pagination links
+                    attachPaginationListeners();
+
+                    // Initialize wishlist buttons for the updated products
+                    initializeWishlistButtons();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            function attachPaginationListeners() {
+                document.querySelectorAll('#paginationLinks a').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const page = this.getAttribute('data-page');
+                        const url = new URL(window.location);
+                        url.searchParams.set('page', page);
+                        updateProducts(url);
+                    });
+                });
+            }
+
+            function applyFilters() {
+                const formData = new FormData(filterForm);
+                const searchParams = new URLSearchParams(formData);
+                const url = new URL(window.location);
+                for (let [key, value] of searchParams) {
+                    if (value) {
+                        url.searchParams.set(key, value);
+                    } else {
+                        url.searchParams.delete(key);
+                    }
+                }
+                updateProducts(url);
+            }
+
+            // Add event listeners to form inputs for immediate filtering
+            filterForm.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('change', applyFilters);
+            });
+
+            // Add event listener to search input for immediate filtering
+            document.getElementById('search').addEventListener('input', applyFilters);
+
+            // Reset filters
+            resetFiltersButton.addEventListener('click', function () {
+                filterForm.reset();
+                const url = new URL(window.location);
+                url.search = '';
+                updateProducts(url);
+            });
+
+            // Update rating value display
+            ratingInput.addEventListener('input', function() {
+                ratingValue.textContent = this.value;
+            });
+
+            // Initial attachment of pagination listeners
+            attachPaginationListeners();
+        });
+
+        function toggleWishlist(productId) {
+            fetch('/user/wishlist/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    // Update the wishlist icon
+                    const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
+                    if (wishlistBtn) {
+                        wishlistBtn.querySelector('svg').classList.toggle('text-red-500');
+                        wishlistBtn.querySelector('svg').classList.toggle('fill-current');
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.message,
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong!',
+                });
+            });
+        }
+
+        function initializeWishlistButtons() {
+            const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+            wishlistButtons.forEach(button => {
+                const productId = button.dataset.productId;
+                const isInWishlist = button.dataset.inWishlist === 'true';
+                const svg = button.querySelector('svg');
+                if (isInWishlist) {
+                    svg.classList.add('text-red-500', 'fill-current');
+                } else {
+                    svg.classList.remove('text-red-500', 'fill-current');
+                }
+            });
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            // Toggle the dropdown menu visibility on click
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Hide the dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

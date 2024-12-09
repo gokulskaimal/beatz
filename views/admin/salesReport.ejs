@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beatz Admin Sales Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-black text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-[#111] p-4">
+            <%- include('../partials/adminHeader') %>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8 bg-darker overflow-y-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-2xl font-bold text-orange-500">Sales Report</h1>
+                <div class="flex space-x-4">
+                    <select id="dateRange" class="bg-[#111] text-white px-4 py-2 rounded-md">
+                        <option value="day">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <input type="date" id="startDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
+                    <input type="date" id="endDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
+                    <button id="generateReport" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">Generate Report</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                <div class="bg-[#111] p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-500">Total Sales</h3>
+                    <p class="text-2xl font-bold" id="totalSales">₹<%= summary.totalSales.toFixed(2) %></p>
+                </div>
+                <div class="bg-[#111] p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-500">Total Orders</h3>
+                    <p class="text-2xl font-bold" id="totalOrders"><%= summary.totalOrders %></p>
+                </div>
+                <div class="bg-[#111] p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-500">Total Discount</h3>
+                    <p class="text-2xl font-bold" id="totalDiscount">₹<%= summary.totalDiscount.toFixed(2) %></p>
+                </div>
+                <div class="bg-[#111] p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-500">Total Coupon</h3>
+                    <p class="text-2xl font-bold" id="totalCouponDiscount">₹<%= summary.totalCouponDiscount.toFixed(2) %></p>
+                </div>
+                <div class="bg-[#111] p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-orange-500">Net Amount</h3>
+                    <p class="text-2xl font-bold" id="netAmount">₹<%= summary.netAmount.toFixed(2) %></p>
+                </div>
+            </div>
+
+            <!-- Sales Chart -->
+            <!-- <div class="bg-[#111] p-4 rounded-lg mb-8">
+                <canvas id="salesChart"></canvas>
+            </div> -->
+
+            <!-- Download Buttons -->
+            <div class="flex justify-end space-x-4 mb-8">
+                <button id="downloadPDF" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">Download PDF</button>
+                <button id="downloadExcel" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Download Excel</button>
+            </div>
+
+            <!-- Sales Table -->
+            <div class="bg-[#111] rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-800">
+                            <th class="text-left p-4 text-orange-500">Date</th>
+                            <th class="text-left p-4 text-orange-500">Order ID</th>
+                            <th class="text-left p-4 text-orange-500">Customer Name</th>
+                            <th class="text-left p-4 text-orange-500">Total Amount</th>
+                            <th class="text-left p-4 text-orange-500">Discount</th>
+                            <th class="text-left p-4 text-orange-500">Coupon Discount</th>
+                            <th class="text-left p-4 text-orange-500">Net Amount</th>
+                            <th class="text-left p-4 text-orange-500">Payment Method</th>
+                            <th class="text-left p-4 text-orange-500">Payment Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <% salesData.forEach(day => { %>
+                            <% day.orders.forEach(order => { %>
+                                <tr class="border-b border-gray-800">
+                                    <td class="p-4"><%= day._id %></td>
+                                    <td class="p-4"><%= order.orderId %></td>
+                                    <td class="p-4"><%= order.customerName %></td>
+                                    <td class="p-4">₹<%= order.totalAmount.toFixed(2) %></td>
+                                    <td class="p-4">₹<%= order.discount.toFixed(2) %></td>
+                                    <td class="p-4">₹<%= order.couponDiscount.toFixed(2) %></td>
+                                    <td class="p-4">₹<%= (order.totalAmount - order.discount).toFixed(2) %></td>
+                                    <td class="p-4"><%= order.paymentMethod %></td>
+                                    <td class="p-4"><%= order.paymentStatus %></td>
+                                </tr>
+                            <% }); %>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-8 flex justify-between items-center">
+                <div>
+                    <span id="paginationInfo" class="text-sm text-gray-400"></span>
+                </div>
+                <div class="space-x-2">
+                    <button id="prevPage" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <button id="nextPage" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utility Functions
+        const qs = (selector) => document.querySelector(selector);
+        const qsa = (selector) => document.querySelectorAll(selector);
+
+        // Chart initialization
+        let salesChart;
+
+        // Pagination variables
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Generate Report
+        async function generateReport() {
+            const dateRange = qs("#dateRange").value;
+            let startDate = qs("#startDate").value;
+            let endDate = qs("#endDate").value;
+
+            let url = `/admin/sales-report/data?range=${dateRange}&page=${currentPage}`;
+            if (dateRange === 'custom') {
+                url += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    updateSummary(data.summary);
+                    updateSalesTable(data.salesData);
+                    // updateSalesChart(data.salesData);
+                    updatePagination(data.pagination);
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+                }
+            } catch (error) {
+                console.error("Error generating report:", error);
+                Swal.fire('Error', 'An error occurred while generating the report', 'error');
+            }
+        }
+
+        // Update Summary
+        function updateSummary(summary) {
+            qs("#totalSales").textContent = `₹${summary.totalSales.toFixed(2)}`;
+            qs("#totalOrders").textContent = summary.totalOrders;
+            qs("#totalDiscount").textContent = `₹${summary.totalDiscount.toFixed(2)}`;
+            qs("#totalCouponDiscount").textContent = `₹${summary.totalCouponDiscount.toFixed(2)}`;
+            qs("#netAmount").textContent = `₹${summary.netAmount.toFixed(2)}`;
+        }
+
+        // Update Sales Table
+        function updateSalesTable(salesData) {
+            const tableBody = qs("#salesTableBody");
+            tableBody.innerHTML = salesData.flatMap(day => 
+                day.orders.map(order => `
+                    <tr class="border-b border-gray-800">
+                        <td class="p-4">${day._id}</td>
+                        <td class="p-4">${order.orderId}</td>
+                        <td class="p-4">${order.customerName}</td>
+                        <td class="p-4">₹${order.totalAmount.toFixed(2)}</td>
+                        <td class="p-4">₹${order.discount.toFixed(2)}</td>
+                        <td class="p-4">₹${order.couponDiscount.toFixed(2)}</td>
+                        <td class="p-4">₹${(order.totalAmount - order.discount).toFixed(2)}</td>
+                        <td class="p-4">${order.paymentMethod}</td>
+                        <td class="p-4">${order.paymentStatus}</td>
+                    </tr>
+                `
+            )).join('');
+        }
+
+        // // Update Sales Chart
+        // function updateSalesChart(salesData) {
+        //     const ctx = qs("#salesChart").getContext('2d');
+            
+        //     if (salesChart) {
+        //         salesChart.destroy();
+        //     }
+
+        //     salesChart = new Chart(ctx, {
+        //         type: 'line',
+        //         data: {
+        //             labels: salesData.map(day => day._id),
+        //             datasets: [{
+        //                 label: 'Net Sales',
+        //                 data: salesData.map(day => day.netAmount),
+        //                 borderColor: '#f97316',
+        //                 tension: 0.1
+        //             }]
+        //         },
+        //         options: {
+        //             responsive: true,
+        //             scales: {
+        //                 y: {
+        //                     beginAtZero: true
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
+
+        // Update Pagination
+        function updatePagination(pagination) {
+            currentPage = pagination.currentPage;
+            totalPages = pagination.totalPages;
+
+            qs("#paginationInfo").textContent = `Page ${currentPage} of ${totalPages}`;
+            qs("#prevPage").disabled = currentPage === 1;
+            qs("#nextPage").disabled = currentPage === totalPages;
+        }
+
+        // Event Listeners
+        qs("#dateRange").addEventListener("change", function() {
+            const customDateInputs = qsa("#startDate, #endDate");
+            customDateInputs.forEach(input => {
+                input.classList.toggle("hidden", this.value !== "custom");
+            });
+        });
+
+        qs("#generateReport").addEventListener("click", generateReport);
+
+        qs("#prevPage").addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                generateReport();
+            }
+        });
+
+        qs("#nextPage").addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                generateReport();
+            }
+        });
+
+        qs("#downloadPDF").addEventListener("click", async function() {
+            const dateRange = qs("#dateRange").value;
+            let startDate = qs("#startDate").value;
+            let endDate = qs("#endDate").value;
+
+            let url = `/admin/sales-report/download/pdf?range=${dateRange}`;
+            if (dateRange === 'custom') {
+                url += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+
+            window.open(url, '_blank');
+        });
+
+        qs("#downloadExcel").addEventListener("click", async function() {
+            const dateRange = qs("#dateRange").value;
+            let startDate = qs("#startDate").value;
+            let endDate = qs("#endDate").value;
+
+            let url = `/admin/sales-report/download/excel?range=${dateRange}`;
+            if (dateRange === 'custom') {
+                url += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+
+            window.open(url, '_blank');
+        });
+
+        // Initialize report on page load
+        document.addEventListener("DOMContentLoaded", generateReport);
+    </script>
+</body>
+</html>
+

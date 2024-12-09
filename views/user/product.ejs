@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= product.product_name %>
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            500: "#f97316",
+                            600: "#ea580c",
+                        },
+                        darker: '#121212',
+                    },
+                },
+            },
+        };
+
+        function changeImage(imageSrc) {
+            document.getElementById("main-image").src = imageSrc;
+            document.getElementById("imageZoom").style.setProperty('--url', `url(${imageSrc})`);
+        }
+    </script>
+
+    <style>
+        #imageZoom {
+            width: 100%;
+            position: relative;
+            cursor: zoom-in;
+            overflow: hidden;
+        }
+
+        #imageZoom img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        #imageZoom::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-image: var(--url);
+            background-size: 200%;
+            background-position: var(--zoom-x) var(--zoom-y);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #imageZoom:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+    <!-- Header -->
+    <%- include('../partials/header',{ user}) %>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <!-- Breadcrumbs -->
+            <nav class="text-sm mb-6">
+                <ol class="list-none p-0 inline-flex">
+                    <li class="flex items-center text-gray-400">
+                        <a href="/user/home" class="hover:text-orange-500 transition-colors">Home</a>
+                        <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                            <path
+                                d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
+                        </svg>
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                        <a href="/user/allProducts" class="hover:text-orange-500 transition-colors">All Products</a>
+                        <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                            <path
+                                d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
+                        </svg>
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                        <a href="#" class="hover:text-orange-500 transition-colors"><%= product.product_name %></a>
+                        <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                            <path
+                                d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
+                        </svg>
+                    </li>
+                    <li class="text-orange-500">
+                        <%= product.productname %>
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Product Section -->
+            <section class="bg-darker rounded-lg shadow-xl overflow-hidden">
+                <div class="flex flex-col md:flex-row">
+                    <!-- Product Images -->
+                    <div class="md:w-1/2 p-6">
+                        <div class="flex flex-col-reverse md:flex-row gap-4">
+                            <!-- Product Image Thumbnails -->
+                            <div id="thumbnails" class="flex md:flex-col gap-4 mt-4 md:mt-0">
+                                <% product.image.forEach((image, index)=> { %>
+                                    <img src="<%= image.replace('height=100&width=100', 'height=80&width=80') %>"
+                                        alt="<%= product.name %> Thumbnail <%= index + 1 %>"
+                                        class="w-16 h-16 rounded-md cursor-pointer hover:opacity-75 transition-opacity"
+                                        onclick="changeImage('<%= image.replace('height=100&width=100', 'height=500&width=500') %>')" />
+                                    <% }) %>
+                            </div>
+
+                            <!-- Main Product Image with Zoom -->
+                            <div id="imageZoom" class="relative flex-1"
+                                style="--url: url(<%= product.image[0].replace('height=100&width=100', 'height=500&width=500') %>);">
+                                <img id="main-image"
+                                    src="<%= product.image[0].replace('height=100&width=100', 'height=500&width=500') %>"
+                                    alt="<%= product.product_name %>" class="w-full h-auto rounded-lg" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="md:w-1/2 p-6 flex flex-col justify-between">
+                        <div>
+                            <h2 class="text-3xl font-bold mb-2">
+                                <%= product.product_name %>
+                            </h2>
+                            <p class="text-gray-400 text-sm mb-6">
+                                <%= product.description %>
+                            </p>
+                            <div class="mb-6">
+                                <span class="text-white-800 text-3xl font-bold"><span class="text-red-600 font-bold">₹ </span><%= product.discountPrice %></span>
+                                <span class="text-gray-500 line-through ml-2">₹<%= product.price %></span>
+                                <span class="text-green-500 ml-2 text-sm font-semibold"><%= product.discount %>%
+                                        OFF</span>
+                            </div>
+                            <p class="mb-4">Color: <span
+                                    class="font-semibold text-yellow-400">
+                                    <%= product.specifications.color %>
+                                </span></p>
+                                <p class="mb-2 <%= product.stock > 0 ? 'text-green-500' : 'text-red-500' %> font-semibold">
+                                    <%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+                                    <span class="text-orange-500">(<%= product.stock %>)</span><br>
+                                    <% if (product.stock <= 10 && product.stock > 0) { %>
+                                        <span class="text-red-500">Only few left!</span>
+                                    <% } %>
+                                </p>
+                                
+                            <section class="">
+                                <h3 class="text-2xl font-bold mb-3">Product Features</h3>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>High-quality sound with deep bass</li>
+                                    <li>Comfortable over-ear design</li>
+                                    <li>Wireless Bluetooth connectivity</li>
+                                    <li>Long-lasting battery life</li>
+                                    <li>Noise-cancelling technology</li>
+                                </ul>
+                            </section>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button id="add-to-cart"
+                                class="flex-1 bg-yellow-600 text-black px-6 py-3 rounded-lg hover:bg-balck-600 transition-colors font-bold">
+                                Add to Cart
+                            </button>
+                            <button
+                                class="flex-1 bg-gray-700 text-black px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-bold">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Similar Products Section -->
+            <section class="mt-12">
+                <h2 class="text-2xl font-bold mb-6">Similar Products</h2>
+                <input type="text" id="message" name="message" value="<%= message %>" style="display: none;">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <% similarProducts.forEach(product=> { %>
+                        <div class="bg-darker rounded-lg shadow-md overflow-hidden">
+                            <img src="<%= product.image[0] %>" alt="<%= product.name %>"
+                                class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-lg font-semibold mb-2">
+                                    <%= product.product_name %>
+                                </h3>
+                                <p class="text-gray-400 text-sm mb-2">
+                                    <%= product.description.substring(0, 20) %>...
+                                </p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white-800 font-bold"><span class="text-red-800 font-bold">₹</span><%= product.price %></span>
+                                    <a href="/user/product/<%= product._id %>"
+                                        class="text-sm text-orange-500 hover:underline">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        <% }) %>
+                </div>
+            </section>
+        </main>
+        <input type="hidden" id="message" value="<%= message || '' %>">
+
+        <!-- Footer -->
+        <%- include('../partials/footer') %>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                        const userIcon = document.getElementById('user-icon');
+                        const userDropdown = document.getElementById('user-dropdown');
+
+                        // Toggle the dropdown menu visibility on click
+                        userIcon.addEventListener('click', () => {
+                            userDropdown.classList.toggle('hidden');
+                        });
+
+                        // Hide the dropdown when clicking outside
+                        document.addEventListener('click', (e) => {
+                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                                userDropdown.classList.add('hidden');
+                            }
+                        });
+                    });
+                document.addEventListener('DOMContentLoaded', () => {
+                    const message = document.getElementById('message').value;
+                    if (message) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Message',
+                            text: message,
+                        });
+                    }
+
+                    const userIcon = document.getElementById('user-icon');
+                    const userDropdown = document.getElementById('user-dropdown');
+
+                    // Toggle the dropdown menu visibility on click
+                    userIcon.addEventListener('click', () => {
+                        userDropdown.classList.toggle('hidden');
+                    });
+
+                    // Hide the dropdown when clicking outside
+                    document.addEventListener('click', (e) => {
+                        if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                            userDropdown.classList.add('hidden');
+                        }
+                    });
+                });
+
+                // Image zoom functionality
+                const imageZoom = document.getElementById('imageZoom');
+                imageZoom.addEventListener('mousemove', (e) => {
+                    const { left, top, width, height } = imageZoom.getBoundingClientRect();
+                    const x = ((e.clientX - left) / width) * 100;
+                    const y = ((e.clientY - top) / height) * 100;
+                    imageZoom.style.setProperty('--zoom-x', `${x}%`);
+                    imageZoom.style.setProperty('--zoom-y', `${y}%`);
+                });
+
+                document.getElementById('add-to-cart').addEventListener('click', async () => {
+                    const productId = '<%= product._id %>';
+                    console.log(productId)
+                    const quantity = 1;
+
+                    try {
+                        const response = await fetch('/user/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ productId, quantity }),
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: 'Product added to cart successfully!',
+                            });
+                            // Optionally, update the cart count or UI
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Failed to add product to cart: ' + result.message,
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error adding to cart:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An unexpected error occurred.',
+                        });
+                    }
+                });
+            </script>
+</body>
+
+</html>
+
