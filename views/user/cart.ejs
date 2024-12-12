@@ -26,7 +26,7 @@
 
 <body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
     <!-- Header -->
-    <%- include('../partials/header',{ user}) %>
+    <%- include('../partials/header',{ user, cartItemCount}) %>
     <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-8">
         <h1 class="text-3xl text-yellow-500 font-bold mb-6">Your Cart</h1>
@@ -241,6 +241,18 @@
 
                 cartContent.innerHTML = html;
             }
+            // Update cart count
+            const cartCountElement = document.querySelector('#cart-count');
+                    if (cartCountElement) {
+                        if (data.cartItemCount > 0) {
+                            cartCountElement.textContent = data.cartItemCount;
+                            cartCountElement.classList.remove('hidden');
+                        } else {
+                            cartCountElement.textContent = '0';
+                            cartCountElement.classList.add('hidden');
+                        }
+                    }
+            document.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart.length } }));
         }
 
         async function updateQuantity(productId, quantity) {
@@ -255,6 +267,7 @@
                 });
 
                 const result = await response.json();
+                response.cartItemCount = result.cartItemCount;
                 if (response.ok) {
                     showMessage('success', 'Success', result.message);
                     fetchCart();
@@ -289,6 +302,7 @@
                     });
 
                     const result = await response.json();
+                    response.cartItemCount = result.cartItemCount;
                     if (response.ok) {
                         showMessage('success', 'Removed!', result.message);
                         if (result.isEmpty) {
@@ -339,4 +353,3 @@
 </body>
 
 </html>
-

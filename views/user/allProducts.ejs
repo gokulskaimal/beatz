@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Products</title>
+    <title>All Products - Beatz Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -23,12 +22,11 @@
         };
     </script>
 </head>
-
 <body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
-    <%- include('../partials/header',{ user}) %>
+    <%- include('../partials/header', { user, cartItemCount }) %>
     <main class="flex-grow container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6">All Products</h1>
-        <h1 class="mb-6">
+        <nav class="mb-6">
             <ol class="list-none p-0 inline-flex">
                 <li class="flex items-center text-gray-400">
                     <a href="/user/home" class="hover:text-orange-500 transition-colors">Home</a>
@@ -38,14 +36,11 @@
                 </li>
                 <li class="flex items-center text-gray-400">
                     <a href="/user/allProducts" class="hover:text-orange-500 transition-colors">All Products</a>
-                    <svg class="fill-current w-3 h-3 mx-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                        <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" />
-                    </svg>
                 </li>
             </ol>
-        </h1>
-
-        <div class="flex flex-col md:flex-row gap-8">
+        </nav>
+        
+        <div class="flex flex-col md:flex-row gap-6">
             <!-- Filters Sidebar -->
             <div class="md:w-1/4">
                 <form id="filterForm" class="bg-darker p-6 rounded-lg shadow-lg">
@@ -55,7 +50,7 @@
                             class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
                     </div>
                     <div class="mb-6">
-                        <label for="category" class="block mb-2 text-sm font-medium text-gray-300">Category</label>
+                        <label for="category" class="block mb-2mb-2 text-sm font-medium text-gray-300">Category</label>
                         <select id="category" name="category"
                             class="w-full bg-gray-800 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500">
                             <option value="">All Categories</option>
@@ -111,24 +106,64 @@
                     <% products.forEach(product => { %>
                         <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full">
                             <img src="<%= product.image[0] %>" alt="<%= product.product_name %>" class="w-full h-48 object-cover">
+                            <div class="absolute top-2 left-2 flex flex-col gap-2">
+                                <% if (product.offer) { %>
+                                    <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                       Extra <%= product.offer.discountPercentage %>% OFF
+                                    </span>
+                                <% } %>
+                            </div>
                             <div class="p-4 flex flex-col flex-grow">
-                                <h3 class="font-semibold text-lg mb-2"><%= product.product_name %></h3>
-                                <p class="text-gray-400 text-sm mb-2 flex-grow"><%= product.description.substring(0, 100) %>...</p>
-                                <p class="text-gray-400 text-sm mb-2">Brand: <%= product.specifications.brand %></p>
+                                <h3 class="font-semibold text-lg mb-2"><%= product.product_name %>
+                                    <% if (product.isNew) { %>
+                                        <span class="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">New</span>
+                                    <% } %>
+                                </h3>
+                                
+                                <p class="text-gray-400 text-sm mb-2 flex-grow"><%= product.description.substring(0, 20) %>...</p>
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-gray-400 text-sm">Brand: <%= product.specifications.brand %></p>
+                                    <% if (product.stock > 0) { %>
+                                        <span class="text-green-500 text-xs font-bold">In Stock (<%= product.stock %>)</span>
+                                    <% } else { %>
+                                        <span class="text-red-500 text-xs font-bold">Out of Stock</span>
+                                    <% } %>
+                                </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-white font-bold"><span class="text-red-500 font-bold">₹</span><%= product.discountPrice %></span>
-                                    <div class="flex items-center">
-                                        <% for (let i = 0; i < 5; i++) { %>
-                                            <svg class="w-4 h-4 <%= i < product.rating ? 'text-yellow-400' : 'text-gray-400' %> fill-current" viewBox="0 0 20 20">
-                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                            </svg>
-                                        <% } %>
-                                        <span class="ml-1 text-sm text-gray-400">(<%= product.rating %>)</span>
-                                    </div>
+
+                                        <span class="text-gray-400 line-through text-sm">₹<%= product.price %></span>
+                                        <div class="flex items-center gap-1 mb-2">
+                                            <span class="text-yellow-400 flex">
+                                                <% for (let i = 0; i < 5; i++) { %>
+                                                    <% if (i < Math.floor(product.rating)) { %>
+                                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                        </svg>
+                                                    <% } else if (i < product.rating) { %>
+                                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                                            <defs>
+                                                                <linearGradient id="half-star">
+                                                                    <stop offset="50%" stop-color="currentColor"/>
+                                                                    <stop offset="50%" stop-color="gray"/>
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <path fill="url(#half-star)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                        </svg>
+                                                    <% } else { %>
+                                                        <svg class="w-4 h-4 text-gray-400 fill-current" viewBox="0 0 20 20">
+                                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                        </svg>
+                                                    <% } %>
+                                                <% } %>
+                                            </span>
+                                            <span class="ml-1 text-sm text-gray-400">(<%= product.rating %>)</span>
+                                        </div>
+                                        
                                 </div>
                                 <div class="mt-4 flex justify-between items-center">
-                                    <a href="/user/product/<%= product._id %>" class="block w-3/4 bg-orange-500 text-center text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors duration-300">
-                                        View Details
+                                    <a href="/user/product/<%= product._id %>" class="block w-3/4 bg-yellow-500 text-center text-black font-bold px-4 py-2 rounded hover:bg-yellow-600 transition-colors duration-300 <%= product.stock === 0 ? 'opacity-50 cursor-not-allowed' : '' %>">
+                                        <%= product.stock === 0 ? 'Out of Stock' : 'View Details' %>
                                     </a>
                                     <button onclick="toggleWishlist('<%= product._id %>')" class="wishlist-btn p-2 rounded-full hover:bg-gray-600 transition-colors duration-300" data-product-id="<%= product._id %>" data-in-wishlist="<%= product.isInWishlist %>">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 <%= product.isInWishlist ? 'text-red-500 fill-current' : '' %>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,14 +189,8 @@
             </div>
         </div>
     </main>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const filterForm = document.getElementById('filterForm');
-                    const productGrid = document.getElementById('productGrid');
-                    const paginationLinks = document.getElementById('paginationLinks');
-                    const resetFiltersButton = document.getElementById('resetFilters');
-
+       
+    <%- include('../partials/footer') %>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const filterForm = document.getElementById('filterForm');
@@ -182,24 +211,59 @@
                     productGrid.innerHTML = data.products.map(product => `
                         <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full">
                             <img src="${product.image[0]}" alt="${product.product_name}" class="w-full h-48 object-cover">
+                            <div class="absolute top-2 left-2 flex flex-col gap-2">
+                                ${product.offer ? `
+                                    <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                        Extra ${product.offer.discountPercentage}% OFF
+                                    </span>
+                                ` : ''}
+                            </div>
                             <div class="p-4 flex flex-col flex-grow">
-                                <h3 class="font-semibold text-lg mb-2">${product.product_name}</h3>
-                                <p class="text-gray-400 text-sm mb-2 flex-grow">${product.description.substring(0, 100)}...</p>
-                                <p class="text-gray-400 text-sm mb-2">Brand: ${product.specifications.brand}</p>
+                                <h3 class="font-semibold text-lg mb-2">${product.product_name} ${product.isNew ? '<span class="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">New</span>' : ''}</h3>
+                                <p class="text-gray-400 text-sm mb-2 flex-grow">${product.description.substring(0, 20)}...</p>
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-gray-400 text-sm">Brand: ${product.specifications.brand}</p>
+                                    ${product.stock > 0 ? `<span class="text-green-500 text-xs font-bold">In Stock (${product.stock})</span>` : '<span class="text-red-500 text-xs font-bold">Out of Stock</span>'}
+                                </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-white font-bold"><span class="text-red-500 font-bold">₹</span>${product.discountPrice}</span>
+                                    ${product.offer ? `<span class="text-gray-400 line-through text-sm">₹${product.discountPrice}</span>` : ''}
                                     <div class="flex items-center">
-                                        ${[...Array(5)].map((_, i) => `
-                                            <svg class="w-4 h-4 ${i < product.rating ? 'text-yellow-400' : 'text-gray-400'} fill-current" viewBox="0 0 20 20">
-                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                            </svg>
-                                        `).join('')}
-                                        <span class="ml-1 text-sm text-gray-400">(${product.rating})</span>
-                                    </div>
+    ${[...Array(5)].map((_, i) => {
+        if (i < Math.floor(product.rating)) {
+            // Full star
+            return `
+                <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>`;
+        } else if (i < product.rating) {
+            // Half star
+            const gradientId = `half-star-${i}`; // Ensure unique ID for each gradient
+            return `
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <defs>
+                        <linearGradient id="${gradientId}">
+                            <stop offset="50%" stop-color="#facc15"/> <!-- Yellow for left half -->
+                            <stop offset="50%" stop-color="#d1d5db"/> <!-- Gray for right half -->
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#${gradientId})" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>`;
+        } else {
+            // Empty star
+            return `
+                <svg class="w-4 h-4 text-gray-400 fill-current" viewBox="0 0 20 20">
+                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>`;
+        }
+    }).join('')}
+    <span class="ml-1 text-sm text-gray-400">(${product.rating})</span>
+</div>
+
                                 </div>
                                 <div class="mt-4 flex justify-between items-center">
-                                    <a href="/user/product/${product._id}" class="block w-3/4 bg-orange-500 text-center text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors duration-300">
-                                        View Details
+                                    <a href="/user/product/${product._id}" class="block w-3/4 bg-yellow-500 text-center text-black font-bold px-4 py-2 rounded hover:bg-yellow-600 transition-colors duration-300 ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                        ${product.stock === 0 ? 'Out of Stock' : 'View Details'}
                                     </a>
                                     <button onclick="toggleWishlist('${product._id}')" class="wishlist-btn p-2 rounded-full hover:bg-gray-600 transition-colors duration-300" data-product-id="${product._id}" data-in-wishlist="${product.isInWishlist}">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${product.isInWishlist ? 'text-red-500 fill-current' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,6 +289,18 @@
 
                     // Initialize wishlist buttons for the updated products
                     initializeWishlistButtons();
+
+                    // Update cart item count
+                    const cartCountElement = document.querySelector('#cart-count');
+                    if (cartCountElement) {
+                        if (data.cartItemCount > 0) {
+                            cartCountElement.textContent = data.cartItemCount;
+                            cartCountElement.classList.remove('hidden');
+                        } else {
+                            cartCountElement.textContent = '0';
+                            cartCountElement.classList.add('hidden');
+                        }
+                    }
                 })
                 .catch(error => console.error('Error:', error));
             }
@@ -335,7 +411,6 @@
                 }
             });
         }
-
 
         document.addEventListener('DOMContentLoaded', () => {
             const userIcon = document.getElementById('user-icon');

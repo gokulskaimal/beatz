@@ -46,7 +46,7 @@
   <%- include('../partials/header') %>
 
     <main class="flex flex-col items-center justify-center min-h-screen py-12">
-      <div class="bg-gray-800 p-8 rounded-lg shadow-md w-96">
+      <div class="bg-gray-900 p-8 rounded-lg shadow-md w-96">
         <h1 class="text-center text-xl font-bold text-orange-500 mb-4">VERIFY OTP</h1>
         <form action="/auth/verify-otp-reset" method="POST">
           <input type="text" id="message" name="message" value="<%= message || '' %>" style="display: none;">

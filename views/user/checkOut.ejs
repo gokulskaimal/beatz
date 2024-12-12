@@ -38,9 +38,9 @@
                     <div id="addressList">
                         <% addresses.forEach((address, index) => { %>
                             <div class="w-full mt-2">
-                                <div id="addressBox-<%=address._id%>" class="bg-gray-800 border border-gray-700 rounded p-4 w-full shadow-md cursor-pointer" onclick="selectAddress('<%=address._id%>')">
+                                <div id="addressBox-<%=address._id%>" class="bg-gray-900 border border-gray-800 rounded p-4 w-full shadow-md cursor-pointer" onclick="selectAddress('<%=address._id%>')">
                                     <div class="flex justify-between items-center ml-6">
-                                        <span class="text-xs font-semibold uppercase bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                                        <span class="text-xs font-semibold uppercase bg-gray-900 text-gray-300 px-2 py-1 rounded">
                                             <%= address.addressType %>
                                         </span>
                                         <div class="flex space-x-4 text-gray-400">
@@ -64,36 +64,36 @@
                                     </div>
                                 </div>
                                 <!-- Edit Address Form - Hidden by default -->
-                                <div id="editAddressForm-<%=address._id%>" class="mt-4 hidden border bg-gray-800 rounded p-4 shadow-md">
+                                <div id="editAddressForm-<%=address._id%>" class="mt-4 hidden border-gray-800 bg-gray-900 rounded p-4 shadow-md">
                                     <form onsubmit="updateAddress('<%=address._id%>'); return false;">
                                         <div class="grid grid-cols-2 gap-4 mb-4">
                                             <div>
                                                 <label for="edit-name-<%=address._id%>" class="sr-only">Name</label>
-                                                <input type="text" id="edit-name-<%=address._id%>" name="name" placeholder="Name" value="<%= address.name %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-name-<%=address._id%>" name="name" placeholder="Name" value="<%= address.name %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-phone-<%=address._id%>" class="sr-only">Phone number</label>
-                                                <input type="tel" id="edit-phone-<%=address._id%>" name="phone" placeholder="Phone number" value="<%= address.phone %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="tel" id="edit-phone-<%=address._id%>" name="phone" placeholder="Phone number" value="<%= address.phone %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-zipCode-<%=address._id%>" class="sr-only">Zip Code</label>
-                                                <input type="text" id="edit-zipCode-<%=address._id%>" name="zipCode" placeholder="Zip Code" value="<%= address.zipCode %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-zipCode-<%=address._id%>" name="zipCode" placeholder="Zip Code" value="<%= address.zipCode %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-street-<%=address._id%>" class="sr-only">Street</label>
-                                                <input type="text" id="edit-street-<%=address._id%>" name="street" placeholder="Street" value="<%= address.street %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-street-<%=address._id%>" name="street" placeholder="Street" value="<%= address.street %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-city-<%=address._id%>" class="sr-only">City</label>
-                                                <input type="text" id="edit-city-<%=address._id%>" name="city" placeholder="City" value="<%= address.city %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-city-<%=address._id%>" name="city" placeholder="City" value="<%= address.city %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-state-<%=address._id%>" class="sr-only">State</label>
-                                                <input type="text" id="edit-state-<%=address._id%>" name="state" placeholder="State" value="<%= address.state %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-state-<%=address._id%>" name="state" placeholder="State" value="<%= address.state %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-country-<%=address._id%>" class="sr-only">Country</label>
-                                                <input type="text" id="edit-country-<%=address._id%>" name="country" placeholder="Country" value="<%= address.country %>" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-country-<%=address._id%>" name="country" placeholder="Country" value="<%= address.country %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                         </div>
                                         <div class="mb-4">
@@ -116,50 +116,47 @@
                     </div>
 
                     <!-- Add Address Button -->
-                    <button id="addAddressButton" type="button" class="bg-gray-700 font-semibold text-white w-full mt-2 py-2 rounded hover:bg-gray-600" onclick="toggleAddressForm()">
+                    <button id="addAddressButton" type="button" class="bg-gray-900 font-semibold text-white w-full mt-2 py-2 rounded hover:bg-gray-600" onclick="toggleAddressForm()">
                         <i class="fa-solid fa-plus fa-sm mr-2" aria-hidden="true"></i> <span class="text-blue-500">Add a new address</span>
                     </button>
 
                     <!-- Add Address Form - Hidden by default -->
-                    <div id="addressForm" class="mt-4 hidden border bg-gray-800 rounded p-4 shadow-md">
+                    <div id="addressForm" class="mt-4 hidden border-gray-800 bg-gray-900 rounded p-4 shadow-md">
                         <form id="addAddressForm">
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label for="name" class="sr-only">Name</label>
-                                    <input type="text" id="name" name="name" placeholder="Name" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="name" name="name" placeholder="Name" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="nameError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
                                     <label for="phone" class="sr-only">Phone number</label>
-                                    <input type="tel" id="phone" name="phone" placeholder="Phone number" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="tel" id="phone" name="phone" placeholder="Phone number" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="phoneError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
                                     <label for="zipCode" class="sr-only">Zip Code</label>
-                                    <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="zipCodeError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
-<<<<<<< HEAD
                                     <label for="street" class="sr-only">Street</label>
-=======
->>>>>>> e4fc9aabc093b25cecd8ab7793ec4f5d550bf149
-                                    <input type="text" id="street" name="street" placeholder="Street" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="street" name="street" placeholder="Street" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="streetError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
                                     <label for="city" class="sr-only">City</label>
-                                    <input type="text" id="city" name="city" placeholder="City" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="city" name="city" placeholder="City" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="cityError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
                                     <label for="state" class="sr-only">State</label>
-                                    <input type="text" id="state" name="state" placeholder="State" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="state" name="state" placeholder="State" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="stateError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
                                     <label for="country" class="sr-only">Country</label>
-                                    <input type="text" id="country" name="country" placeholder="Country" class="bg-gray-700 border border-gray-600 p-2 rounded w-full text-white">
+                                    <input type="text" id="country" name="country" placeholder="Country" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="countryError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                             </div>
@@ -185,18 +182,18 @@
                     </div>
 
                     <div class="mt-8">
-                        <div class="w-full bg-gray-800 p-4 rounded mb-2">
+                        <div class="w-full bg-gray-900 p-4 rounded mb-2">
                             <h2 class="text-yellow-500 font-semibold">PAYMENT OPTIONS</h2>
                         </div>
-                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer" onclick="selectPaymentMethod('Cash On Delivery')">
+                        <div class="bg-gray-900 w-full py-4 pl-4 rounded shadow-md border border-gray-800 cursor-pointer" onclick="selectPaymentMethod('Cash On Delivery')">
                             <input type="radio" name="paymentMethod" value="Cash On Delivery" id="paymentCod" class="mr-2 text-orange-500">
                             <label for="paymentCod" class="text-gray-300">Cash on Delivery</label>
                         </div>
-                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer mt-2" onclick="selectPaymentMethod('Razorpay')">
+                        <div class="bg-gray-900 w-full py-4 pl-4 rounded shadow-md border border-gray-800 cursor-pointer mt-2" onclick="selectPaymentMethod('Razorpay')">
                             <input type="radio" name="paymentMethod" value="Razorpay" id="paymentRazorpay" class="mr-2 text-orange-500">
                             <label for="paymentRazorpay" class="text-gray-300">Razorpay</label>
                         </div>
-                        <div class="bg-gray-800 w-full py-4 pl-4 rounded shadow-md border border-gray-700 cursor-pointer mt-2" onclick="selectPaymentMethod('Wallet')">
+                        <div class="bg-gray-900 w-full py-4 pl-4 rounded shadow-md border border-gray-800 cursor-pointer mt-2" onclick="selectPaymentMethod('Wallet')">
                             <input type="radio" name="paymentMethod" value="Wallet" id="paymentWallet" class="mr-2 text-orange-500">
                             <label for="paymentWallet" class="text-gray-300">Wallet (Balance: ₹<span id="walletBalance">0.00</span>)</label>
                         </div>
@@ -210,7 +207,7 @@
                 <div id="orderSummary">
                     <% if (cart && cart.items && cart.items.length > 0) { %>
                         <% cart.items.forEach(item => { %> 
-                            <div id="cart-item-<%=item.product._id %>" class="flex gap-4 bg-gray-800 px-4 py-6 mb-2 rounded-md border border-gray-700 shadow-[0_2px_12px_-3px_rgba(6,81,237,0.3)]">
+                            <div id="cart-item-<%=item.product._id %>" class="flex gap-4 bg-gray-900 px-4 py-6 mb-2 rounded-md border border-gray-800 shadow-[0_2px_12px_-3px_rgba(6,81,237,0.3)]">
                                 <div class="flex gap-4">
                                     <a href="/user/product/<%= item.product._id %>">
                                         <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0">
@@ -235,8 +232,8 @@
                                                 <span id="original-price-<%=item.product._id%>" class="text-gray-400 line-through" data-base-price="<%= item.product.price %>">
                                                     <span>&#8377;</span><%= item.product.price * item.quantity %>
                                                 </span>
-                                                <span id="discount-price-<%=item.product._id%>" class="text-lg font-bold ml-2 text-white" data-base-price="<%= item.product.discountPrice %>">
-                                                    <span class="text-red-500">&#8377;</span><%= item.product.discountPrice * item.quantity %>
+                                                <span id="discount-price-<%=item.product._id%>" class="text-lg font-bold ml-2 text-white" data-base-price="<%= item.finalPrice %>">
+                                                    <span class="text-red-500">&#8377;</span><%= item.finalPrice * item.quantity %>
                                                 </span>
                                                 <span class="text-green-500 font-semibold ml-2"><%= item.product.discount %>% off</span>
                                             </h4>
@@ -283,7 +280,7 @@
                 <div class="mt-8">
                     <h3 class="text-lg font-semibold mb-2">Apply Coupon</h3>
                     <div class="flex">
-                        <select id="couponSelect" class="bg-gray-700 border border-gray-600 p-2 rounded-l w-full text-white" <%= appliedCoupon ? 'disabled' : '' %>>
+                        <select id="couponSelect" class="bg-gray-900 border border-gray-800 p-2 rounded-l w-full text-white" <%= appliedCoupon ? 'disabled' : '' %>>
                             <option value="">Select a coupon</option>
                             <% if (availableCoupons && availableCoupons.length > 0) { %>
                                 <% availableCoupons.forEach(coupon => { %>
@@ -535,7 +532,7 @@
             description: 'Purchase',
             order_id: order.id,
             handler: function (response) {
-                verifyPayment(response, order);
+                verifyPayment(response, order); 
             },
             prefill: {
                 name: '<%= user.firstName %> <%= user.lastName %>',

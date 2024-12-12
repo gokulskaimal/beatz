@@ -19,16 +19,26 @@
             },
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
 </head>
 
 <body class="min-h-screen bg-gray-900 text-white">
-    <%- include('../partials/header',{ user}) %>
-        <div class="container mx-auto p-6 flex gap-8">
-            <!-- Sidebar -->
-
+    <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user }) %>
+    </header>
+    <div class="container mx-auto p-6 flex gap-8">
+        <!-- Sidebar -->
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
             <%- include('../partials/userSideBar') %>
-                <!-- Main Content -->
-                <div class="flex-1">
+        </div>
+
+        <div class="flex-1 mt-16 ml-64">
                     <div class="rounded-lg border border-none p-6 h-full bg-darker">
                         <h1 class="text-2xl font-bold text-gold mb-8">Personal Information</h1>
 
@@ -36,7 +46,7 @@
                             <div class="space-y-2">
                                 <label for="firstName" class="block text-sm text-gray-400">First Name</label>
                                 <input type="text" id="firstName" name="firstName" value="<%= user.firstName %>"
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                    class="w-full bg-gray-900 border-b border-gray-900 px-3 py-2 focus:border-gold focus:outline-none text-white">
                                 <p id="firstNameError" class="text-xs text-red-500 hidden">First name is required and
                                     must be alphabetic.</p>
                             </div>
@@ -44,7 +54,7 @@
                             <div class="space-y-2">
                                 <label for="lastName" class="block text-sm text-gray-400">Last Name</label>
                                 <input type="text" id="lastName" name="lastName" value="<%= user.lastName %>"
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                    class="w-full bg-gray-900 border-b border-gray-900 px-3 py-2 focus:border-gold focus:outline-none text-white">
                                 <p id="lastNameError" class="text-xs text-red-500 hidden">Last name is required and must
                                     be alphabetic.</p>
                             </div>
@@ -52,7 +62,7 @@
                             <div class="space-y-2">
                                 <label for="email" class="block text-sm text-gray-400">Email Address</label>
                                 <input type="email" id="email" name="email" value="<%= user.email %>"
-                                    class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 text-gray-400 cursor-not-allowed"
+                                    class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 text-gray-400 cursor-not-allowed"
                                     disabled>
                                 <p class="text-xs text-red-500 mt-1">Email cannot be changed directly. Please contact
                                     support for assistance.</p>
@@ -61,7 +71,7 @@
                             <div class="space-y-2">
                                 <label for="phone" class="block text-sm text-gray-400">Phone no</label>
                                 <input type="tel" id="phone" name="phone" value="<%= user.phone %>"
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white">
+                                    class="w-full bg-gray-900 border-b border-gray-900 px-3 py-2 focus:border-gold focus:outline-none text-white">
                                 <p id="phoneError" class="text-xs text-red-500 hidden">Phone number is required and must
                                     be a valid 10-digit number.</p>
                             </div>
@@ -74,7 +84,6 @@
                     </div>
                 </div>
         </div>
-        <%- include('../partials/footer') %>
 
             <% if (message) { %>
                 <script>

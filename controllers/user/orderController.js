@@ -50,7 +50,7 @@ exports.placeOrder = async (req, res) => {
                 productName: product.product_name,
                 quantity: item.quantity,
                 price: product.price,
-                discountPrice: product.discountPrice,
+                discountPrice: item.finalPrice,
                 subtotal,
                 status: 'Pending'
             };
@@ -313,9 +313,15 @@ exports.getOrderConfirmation = async (req, res) => {
         if (!order) {
             return res.status(404).render('error', { message: 'Order not found' });
         }
+        let cartItemCount = 0;
+        const cart = await Cart.findOne({ userId: req.user._id });
+        if (cart) {
+            cartItemCount = cart.items.length;
+        }
+
 
         order.formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
-        res.render('user/orderConfirmation', { order ,user:req.user});
+        res.render('user/orderConfirmation', { order ,user:req.user,cartItemCount:cart.items.length});
     } catch (error) {
         console.error('Error fetching order confirmation:', error);
         res.status(500).render('error', { message: 'Failed to fetch order confirmation' });
@@ -331,8 +337,14 @@ exports.getUserOrders = async (req, res) => {
             formattedDate: format(order.orderDate, 'MMMM dd, yyyy'),
             totalItems: order.items.reduce((sum, item) => sum + item.quantity, 0)
         }));
+        
+        let cartItemCount = 0;
+        const cart = await Cart.findOne({ userId: req.user._id });
+        if (cart) {
+            cartItemCount = cart.items.length;
+        }
 
-        res.render('user/myOrders', { orders: formattedOrders,user:req.user });
+        res.render('user/myOrders', { orders: formattedOrders, user: req.user, cartItemCount });
     } catch (error) {
         console.error('Error fetching user orders:', error);
         res.status(500).render('error', { message: 'Failed to fetch orders' });
@@ -352,8 +364,13 @@ exports.getOrderDetails = async (req, res) => {
         }
 
         const formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
+        let cartItemCount = 0;
+        const cart = await Cart.findOne({ userId: req.user._id });
+        if (cart) {
+            cartItemCount = cart.items.length;
+        }
 
-        res.json({ order, formattedDate });
+        res.json({ order, formattedDate,cartItemCount });
     } catch (error) {
         console.error('Error fetching order details:', error);
         res.status(500).json({ message: 'Failed to fetch order details' });
@@ -387,8 +404,14 @@ exports.requestReturn = async (req, res) => {
         item.returnRequestDate = new Date();
 
         await order.save();
-
-        res.json({ message: 'Return request submitted successfully' });
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        res.json({ message: 'Return request submitted successfully',cartItemCount });
     } catch (error) {
         console.error('Error requesting return:', error);
         res.status(500).json({ message: 'Failed to submit return request' });
@@ -451,8 +474,14 @@ exports.updateOrderStatus = async (req, res) => {
         }
 
         await order.save();
-
-        res.json({ message: 'Order status updated successfully', order });
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        res.json({ message: 'Order status updated successfully', order,cartItemCount });
     } catch (error) {
         console.error('Error updating order status:', error);
         res.status(500).json({ message: 'Failed to update order status' });
@@ -468,11 +497,17 @@ exports.generateInvoice = async (req, res) => {
         if (!order) { 
             return res.status(404).json({ message: 'Order not found' });
         }
-
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
         // Generate PDF invoice logic here
         // You might want to use a library like PDFKit to generate the PDF
 
-        res.json({ message: 'Invoice generated successfully', invoiceUrl: 'path/to/invoice.pdf' });
+        res.json({ message: 'Invoice generated successfully', invoiceUrl: 'path/to/invoice.pdf',cartItemCount });
     } catch (error) {
         console.error('Error generating invoice:', error);
         res.status(500).json({ message: 'Failed to generate invoice' });
@@ -491,13 +526,21 @@ exports.getOrderStatistics = async (req, res) => {
             { $match: { orderStatus: 'Delivered' } },
             { $group: { _id: null, total: { $sum: '$payment.discountPrice' } } }
         ]);
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
 
         res.json({
             totalOrders,
             completedOrders,
             pendingOrders,
             cancelledOrders,
-            totalRevenue: totalRevenue[0]?.total || 0
+            totalRevenue: totalRevenue[0]?.total || 0,
+            cartItemCount
         });
     } catch (error) {
         console.error('Error fetching order statistics:', error);
@@ -530,8 +573,14 @@ exports.bulkOrderAction = async (req, res) => {
             { _id: { $in: orderIds } },
             { $set: updateOperation }
         );
-
-        res.json({ message: `Bulk action completed. ${result.nModified} orders updated.` });
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        res.json({ message: `Bulk action completed. ${result.nModified} orders updated.`,cartItemCount });
     } catch (error) {
         console.error('Error performing bulk order action:', error);
         res.status(500).json({ message: 'Failed to perform bulk order action' });

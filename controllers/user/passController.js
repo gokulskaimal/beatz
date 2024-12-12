@@ -1,15 +1,23 @@
 const bcrypt = require('bcrypt');
 const User = require('../../models/userModel');
-
+const Cart = require('../../models/cartModel');
 
 
 // Render Change Password Page
-exports.getChangePasswordPage = (req, res) => {
+exports.getChangePasswordPage = async (req, res) => {
     try {
+      let cartItemCount = 0;
+      if (req.user) {
+          const cart = await Cart.findOne({ userId: req.user._id });
+          if (cart) {
+              cartItemCount = cart.items.length
+          }
+      }
       res.render('user/changePass', {
         title: 'Change Password',
         user: req.session.user, // Pass user data to the view if needed
         message: null,
+        cartItemCount
       });
     } catch (error) {
       console.error('Error rendering change password page:', error);
@@ -36,6 +44,7 @@ exports.postChangePassword = async (req, res) => {
       // Get the user ID from session and fetch the user from the database
       const userId = req.session.user._id;
       const user = await User.findById(userId);
+
   
       if (!user) {
         return res.status(404).json({ success: false, message: 'User not found.' });
@@ -53,11 +62,17 @@ exports.postChangePassword = async (req, res) => {
       // Update user's password
       user.password = hashedPassword;
       await user.save();
-  
+      let cartItemCount = 0;
+      if (req.user) {
+          const cart = await Cart.findOne({ userId: req.user._id });
+          if (cart) {
+              cartItemCount = cart.items.length
+          }
+      }
       // Respond with success
       res.status(200).json({
         success: true,
-        message: 'Password changed successfully.',
+        message: 'Password changed successfully.',cartItemCount
       });
     } catch (error) {
       console.error('Error handling change password request:', error);

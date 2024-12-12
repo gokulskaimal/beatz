@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Wishlist</title>
+    <title>Your Wishlist - Beatz Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -23,18 +23,16 @@
     </script>
 </head>
 <body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
-    <!-- Header -->
-    <%- include('../partials/header',{ user}) %>
-    <!-- Main Content -->
+    <%- include('../partials/header', { user, cartItemCount }) %>
+    
     <main class="flex-grow container mx-auto px-4 py-8">
-        <h1 class="text-3xl text-yellow-500 font-bold mb-6">Your Wishlist</h1>
-
-        <div id="wishlistContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <h1 class="text-3xl font-bold text-orange-500 mb-6">Your Wishlist</h1>
+        
+        <div id="wishlistContent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- Wishlist items will be dynamically inserted here -->
         </div>
     </main>
 
-    <!-- Footer -->
     <%- include('../partials/footer') %>
 
     <script>
@@ -63,25 +61,63 @@
         function renderWishlist(wishlist) {
             const wishlistContent = document.getElementById('wishlistContent');
             if (wishlist.length === 0) {
-                wishlistContent.innerHTML = '<p class="text-gray-400 col-span-full">Your wishlist is empty.</p>';
-                showMessage('info', 'Info', 'Your wishlist is empty.');
+                wishlistContent.innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
             } else {
                 wishlistContent.innerHTML = wishlist.map(item => `
-                    <div class="bg-darker rounded-lg shadow-xl overflow-hidden" data-wishlist-item-id="${item.wishlistItemId}">
-                        <a href="/user/product/${item._id}" > <img src="${item.image[0]}" alt="${item.product_name}" class="w-full h-48 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg mb-2">${item.product_name}</h3>
-                            <p class="text-gray-400 mb-2">${item.description ? item.description.substring(0, 20) + '...' : ''}</p></a>
-                            <div class="flex justify-between items-center">
-                                <p class="font-bold"><span class="text-red-500">₹</span>${item.discountPrice || item.price}</p>
-                                <div class="flex space-x-2">
-                                    <button onclick="addToCart('${item._id}')" class="bg-yellow-600 text-black px-4 py-2 rounded hover:bg-yellow-500 transition-colors">
-                                        Add to Cart
-                                    </button>
-                                    <button onclick="removeFromWishlist('${item.wishlistItemId}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500 transition-colors">
-                                        Remove
-                                    </button>
+                    <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full" data-wishlist-item-id="${item.wishlistItemId}">
+                        <div class="relative group">
+                            <img src="${item.image[0]}" alt="${item.product_name}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            ${item.offer ? `
+                                <div class="absolute top-0 left-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-br">
+                                    Extra ${item.offer.discountPercentage}% OFF
                                 </div>
+                            ` : ''}
+                            ${item.isNew ? `
+                                <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-bl">
+                                    NEW
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <h3 class="font-semibold text-lg text-white mb-1">${item.product_name}</h3>
+                            <p class="text-gray-400 text-sm mb-2 flex-grow">${item.description ? item.description.substring(0, 20) + '...' : ''}</p>
+                            <div class="flex items-center gap-1 mb-2">
+                                <span class="text-yellow-400 flex">
+                                    ${[...Array(5)].map((_, i) => {
+                                        if (i < Math.floor(item.rating)) {
+                                            return '<svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                        } else if (i < item.rating) {
+                                            return '<svg class="w-4 h-4" viewBox="0 0 20 20"><defs><linearGradient id="half-star"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="transparent"/></linearGradient></defs><path fill="url(#half-star)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                        } else {
+                                            return '<svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                        }
+                                    }).join('')}
+                                </span>
+                                <span class="text-gray-400 text-sm">(${item.rating})</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-white-500 font-bold text-xl">
+                                    <span class="text-red-500 font-bold">₹</span>${item.discountPrice}
+                                </p>
+                                ${item.discountPrice < item.price ? `
+                                    <span class="text-gray-400 line-through text-sm">₹${item.price}</span>
+                                ` : ''}
+                            </div>
+                            ${item.stock > 0 ? `
+                                <span class="text-green-500 text-xs font-bold mb-2 block">In Stock (${item.stock})</span>
+                            ` : `
+                                <span class="text-red-500 text-xs font-bold mb-2 block">Out of Stock</span>
+                            `}
+                            <div class="flex justify-between items-center mt-2">
+                                <button onclick="addToCart('${item._id}')" class="w-3/4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition-colors ${item.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                                </button>
+                                <button onclick="removeFromWishlist('${item.wishlistItemId}')" class="wishlist-btn p-2 rounded-full hover:bg-gray-700 transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 fill-current" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -103,6 +139,7 @@
                 const result = await response.json();
                 if (response.ok) {
                     showMessage('success', 'Success', result.message);
+                    updateCartCount(result.cartItemCount);
                 } else {
                     showMessage('error', 'Error', result.message);
                 }
@@ -130,13 +167,21 @@
                         itemElement.remove();
                     }
                     if (document.querySelectorAll('#wishlistContent > div').length === 0) {
-                        document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full">Your wishlist is empty.</p>';
+                        document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
                     }
                 } else {
                     showMessage('error', 'Error', result.message);
                 }
             } catch (err) {
                 showMessage('error', 'Error', 'An error occurred. Please try again later.');
+            }
+        }
+
+        function updateCartCount(count) {
+            const cartCountElement = document.getElementById('cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = count;
+                cartCountElement.classList.toggle('hidden', count === 0);
             }
         }
 

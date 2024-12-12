@@ -1,5 +1,6 @@
 const Wallet = require('../../models/walletModel');
 const Order = require('../../models/orderModel');
+const Cart = require('../../models/cartModel');
 
 exports.getWallet = async (req, res) => {
     const userId = req.user._id;
@@ -10,7 +11,14 @@ exports.getWallet = async (req, res) => {
             await newWallet.save();
             return res.render('user/wallet', { wallet: newWallet });
         }
-        res.render('user/wallet', { wallet,user:req.user });
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        res.render('user/wallet', { wallet,user:req.user,cartItemCount });
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
@@ -35,8 +43,15 @@ exports.addFunds = async (req, res) => {
         });
 
         await wallet.save();
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
 
-        res.json({ success: true, message: 'Funds added successfully' });
+        res.json({ success: true, message: 'Funds added successfully',wallet,user:req.user,cartItemCount });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server error' });
@@ -66,8 +81,14 @@ exports.processRefund = async (orderId, userId, refundAmount) => {
         await Order.findByIdAndUpdate(orderId, {
             $inc: { 'payment.refundedAmount': refundAmount }
         });
-
-        return { success: true, message: 'Refund processed successfully' };
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        return { success: true, message: 'Refund processed successfully',wallet,user:req.user,cartItemCount };
     } catch (error) {
         console.error('Error processing refund:', error);
         return { success: false, message: 'Failed to process refund' };

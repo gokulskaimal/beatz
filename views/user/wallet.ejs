@@ -33,35 +33,36 @@
 </head>
 
 <body class="min-h-screen bg-gray-900 text-white">
-    <!-- Include Header -->
-    <%- include('../partials/header', { user }) %>
-    
+    <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user }) %>
+    </header>
     <div class="container mx-auto p-6 flex gap-8">
         <!-- Sidebar -->
-        <%- include('../partials/userSideBar') %>
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
+            <%- include('../partials/userSideBar') %>
+        </div>
 
-        <!-- Main Content -->
-        <div class="flex-1">
-            <div class="rounded-lg border border-gold/30 p-6 h-full bg-darker">
+        <div class="flex-1 mt-16 ml-64">
+            <div class="rounded-lg border border-none p-6 h-full bg-darker">
                 <h1 class="text-2xl font-bold text-gold mb-8">Your Wallet</h1>
                 
-                <div class="bg-gray-800 rounded-lg p-6 mb-8">
+                <div class="bg-gray-900 rounded-lg p-6 mb-8">
                     <h2 class="text-xl font-semibold mb-4">Balance</h2>
-                    <p class="text-3xl font-bold text-orange-500">₹<%= wallet.balance.toFixed(2) %></p>
+                    <p class="text-3xl font-bold text-white-500"><span class="text-red-600 font-bold">₹</span><%= wallet.balance.toFixed(2) %></p>
                 </div>
 
-                <div class="bg-gray-800 rounded-lg p-6 mb-8">
+                <div class="bg-gray-900 rounded-lg p-6 mb-8">
                     <h2 class="text-xl font-semibold mb-4">Add Funds</h2>
                     <form id="add-funds-form" class="flex gap-4">
                         <input type="number" id="amount" name="amount" placeholder="Enter amount" min="1" step="0.01" required
-                            class="flex-1 bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded focus:border-gold focus:outline-none">
+                            class="flex-1 bg-gray-900 border border-gray-600 text-white px-3 py-2 rounded focus:border-gold focus:outline-none">
                         <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition-colors">
                             Add Funds
                         </button>
                     </form>
                 </div>
 
-                <div class="bg-gray-800 rounded-lg p-6">
+                <div class="bg-gray-900 rounded-lg p-6">
                     <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
                     <div class="overflow-x-auto">
                         <table class="w-full">
@@ -73,27 +74,24 @@
                                     <th class="pb-2">Amount</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <% wallet.transactions.sort((a, b) => b.date - a.date).forEach(transaction => { %>
-                                    <tr class="border-b border-gray-700">
-                                        <td class="py-2"><%= new Date(transaction.date).toLocaleDateString() %></td>
-                                        <td class="py-2"><%= transaction.description %></td>
-                                        <td class="py-2"><%= transaction.type %></td>
-                                        <td class="py-2 <%= transaction.amount > 0 ? 'text-green-500' : 'text-red-500' %>">
-                                            <%= transaction.amount > 0 ? '+' : '-' %>₹<%= Math.abs(transaction.amount).toFixed(2) %>
-                                        </td>
-                                    </tr>
-                                <% }) %>
+                            <tbody id="transactionTableBody">
+                                <!-- Transaction rows will be inserted here by JavaScript -->
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div>
+                            <span id="pageInfo" class="text-sm text-gray-400"></span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="prevPage" class="bg-blue-800 text-white px-3 py-1 rounded hover:bg-gray-700 transition-colors">Previous</button>
+                            <button id="nextPage" class="bg-blue-800 text-white px-3 py-1 rounded hover:bg-gray-700 transition-colors">Next</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    <%- include('../partials/footer') %>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -138,9 +136,7 @@
                     });
                 }
             });
-        });
-        
-        document.addEventListener('DOMContentLoaded', () => {
+
             const userIcon = document.getElementById('user-icon');
             const userDropdown = document.getElementById('user-dropdown');
     
@@ -153,8 +149,57 @@
                     userDropdown.classList.add('hidden');
                 }
             });
+
+            // Pagination logic
+            const transactions = <%- JSON.stringify(wallet.transactions.sort((a, b) => b.date - a.date)) %>;
+            const itemsPerPage = 10;
+            let currentPage = 1;
+
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+            const tableBody = document.getElementById('transactionTableBody');
+
+            function renderTransactions() {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const pageTransactions = transactions.slice(startIndex, endIndex);
+
+                tableBody.innerHTML = pageTransactions.map(transaction => `
+                    <tr class="border-b border-gray-700">
+                        <td class="py-2">${new Date(transaction.date).toLocaleDateString()}</td>
+                        <td class="py-2">${transaction.description}</td>
+                        <td class="py-2">${transaction.type}</td>
+                        <td class="py-2 ${transaction.amount > 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${transaction.amount > 0 ? '+' : '-'}₹${Math.abs(transaction.amount).toFixed(2)}
+                        </td>
+                    </tr>
+                `).join('');
+
+                pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(transactions.length / itemsPerPage)}`;
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = endIndex >= transactions.length;
+            }
+
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTransactions();
+                }
+            });
+
+            nextPageBtn.addEventListener('click', () => {
+                if (currentPage < Math.ceil(transactions.length / itemsPerPage)) {
+                    currentPage++;
+                    renderTransactions();
+                }
+            });
+
+            // Initial render
+            renderTransactions();
         });
     </script>
 </body>
 
 </html>
+

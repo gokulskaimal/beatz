@@ -25,7 +25,9 @@ exports.getCheckout = async (req, res) => {
                 totalItems: 0, 
                 availableCoupons: [], 
                 user,
-                appliedCoupon: null,user:req.user
+                appliedCoupon: null,
+                user:req.user,
+                cartItemCount:cart.items.length
             });
         }
 
@@ -114,7 +116,9 @@ exports.getCheckout = async (req, res) => {
             appliedCoupon,
             availableCoupons,
             user,
-            appliedCouponCode,user:req.user
+            appliedCouponCode,
+            user:req.user,
+            cartItemCount:cart.items.length
         });
     } catch (error) {
         console.error("Get checkout error: ", error);

@@ -9,7 +9,11 @@ const userRoutes = require('./routes/userRoutes')
 const passport = require('./utils/passport');
 const app = express();
 const nocache = require("nocache");
+
+
 require('dotenv').config();
+
+
 app.use(nocache()); 
 app.use(methodOverride('_method'));
    
@@ -68,12 +72,10 @@ app.use((req, res, next) => {
 // Routes    
 app.use('/auth', authRoutes); 
 app.use("/admin", adminRoutes);
-app.use("/user", userRoutes)
+app.use("/user", userRoutes) 
 
       
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}/auth/home`));
-  
-
   

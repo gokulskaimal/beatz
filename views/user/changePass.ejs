@@ -19,16 +19,26 @@
             },
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
 </head>
 
 <body class="min-h-screen bg-gray-900 text-white">
-    <%- include('../partials/header',{ user}) %>
-        <div class="container mx-auto p-6 flex gap-8">
-            <!-- Sidebar -->
+    <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user }) %>
+    </header>
+    <div class="container mx-auto p-6 flex gap-8">
+        <!-- Sidebar -->
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
             <%- include('../partials/userSideBar') %>
+        </div>
 
-                <!-- Main Content -->
-                <div class="flex-1">
+        <div class="flex-1 mt-16 ml-64">
                     <div class="rounded-lg border border-none p-6 h-full bg-darker">
                         <h1 class="text-2xl font-bold text-gold mb-8">Change Password</h1>
 
@@ -37,20 +47,20 @@
                                 <label for="currentPassword" class="block text-sm text-gray-400">Current
                                     Password</label>
                                 <input type="password" id="currentPassword" name="currentPassword" required
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
                             </div>
 
                             <div class="space-y-2">
                                 <label for="newPassword" class="block text-sm text-gray-400">New Password</label>
                                 <input type="password" id="newPassword" name="newPassword" required
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
                             </div>
 
                             <div class="space-y-2">
                                 <label for="confirmPassword" class="block text-sm text-gray-400">Confirm New
                                     Password</label>
                                 <input type="password" id="confirmPassword" name="confirmPassword" required
-                                    class="w-full bg-gray-800 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
                             </div>
 
                             <button type="submit"
@@ -138,8 +148,10 @@
                     });
                     
                 </script>
-
-                <%- include('../partials/footer') %>
+                <footer class=""fixed bottom-0 left-0 right-0 bg-darker z-50">
+                    
+                </footer>
+                
 </body>
 
 </html>

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,16 +28,13 @@
         }
     </style>
 </head>
-
-<body class="min-h-screen bg-black text-white">
-    <!-- Include Header -->
-    <%- include('../partials/header',{ user}) %>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+    <%- include('../partials/header', { user, cartItemCount }) %>
 
     <main>
         <!-- Hero Section -->
         <section class="relative h-[500px] overflow-hidden">
-            <img src="/images/hphero-kimkpill.jpg.large.2x.jpg" alt="Beats x Kim"
-                class="object-cover w-full h-full">
+            <img src="/images/hphero-kimkpill.jpg.large.2x.jpg" alt="Beats x Kim" class="object-cover w-full h-full">
             <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent">
                 <div class="container mx-auto px-4 h-full flex items-center">
                     <div class="max-w-lg">
@@ -54,33 +50,73 @@
             </div>
         </section>
         
-        <!-- New Products Section -->
-        <section class="py-12 bg-darker">
+        <!-- All Products Section -->
+        <section class="py-12 bg-gray-900">
             <div class="container mx-auto px-4">
-                <h2 class="text-2xl font-bold text-orange-500 mb-8">New Arrivals</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <% products.forEach((product, index) => { %>
-                        <div class="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 relative">
+                <h2 class="text-2xl font-bold text-orange-500 mb-8">All Products</h2>
+                
+                <!-- New Products Banner -->
+                <!-- <div class="mb-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">New Arrivals</h3>
+                    <p>Check out our latest products!</p>
+                </div> -->
+
+                <!-- Offers Banner -->
+                <!-- <div class="mb-8 bg-gradient-to-r from-green-500 to-teal-600 text-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-2">Special Offers</h3>
+                    <p>Don't miss out on our amazing deals!</p>
+                </div> -->
+
+                <!-- Products Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <% products.forEach((product) => { %>
+                        <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full">
                             <a href="/user/product/<%= product._id %>">
                                 <div class="relative group">
-                                    <img src="<%= product.image[0] %>" alt="<%= product.product_name %>"
-                                        class="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    </div>
+                                    <img src="<%= product.image[0] %>" alt="<%= product.product_name %>" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <% if (product.offer) { %>
+                                        <div class="absolute top-0 left-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-br">
+                                            Extra <%= product.offer.discountPercentage %>% OFF
+                                        </div>
+                                    <% } %>
+                                    <% if (product.isNew) { %>
+                                        <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-bl">
+                                            NEW
+                                        </div>
+                                    <% } %>
                                 </div>
-                                <div class="p-4">
-                                    <h3 class="font-semibold text-lg text-white mb-1">
-                                        <%= product.product_name %>
-                                    </h3>
+                                <div class="p-4 flex flex-col flex-grow">
+                                    <h3 class="font-semibold text-lg text-white mb-1"><%= product.product_name %></h3>
+                                    <p class="text-gray-400 text-sm mb-2 flex-grow"><%= product.description ? product.description.substring(0, 20) + '...' : '' %></p>
                                     <div class="flex items-center gap-1 mb-2">
-                                        <span class="text-yellow-400">
-                                            &#9733;&#9733;&#9733;&#9733;&#9734;
+                                        <span class="text-yellow-400 flex">
+                                            <%- [...Array(5)].map((_, i) => {
+                                                if (i < Math.floor(product.rating)) {
+                                                    return '<svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                                } else if (i < product.rating) {
+                                                    return '<svg class="w-4 h-4" viewBox="0 0 20 20"><defs><linearGradient id="half-star"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="transparent"/></linearGradient></defs><path fill="url(#half-star)" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                                } else {
+                                                    return '<svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>';
+                                                }
+                                            }).join('') %>
                                         </span>
-                                        <span class="text-gray-400 text-sm">(120 Reviews)</span>
+                                        <span class="text-gray-400 text-sm">(<%= product.rating %>)</span>
                                     </div>
-                                    <p class="text-white-500 font-bold text-xl mb-4"><span class="text-red-500 font-bold">₹</span><%= product.price %>
-                                    </p>
-                                    <button class="w-full bg-yellow-500 hover:bg-yellow-800 text-black font-bold px-4 py-2 rounded-lg font-medium transition duration-300">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="text-white-500 font-bold text-xl">
+                                            <span class="text-red-500 font-bold">₹</span><%= product.discountPrice %>
+                                        </p>
+                                        <% if (product.price > product.discountPrice) { %>
+                                            <span class="text-gray-400 line-through text-sm">₹<%= product.price %></span>
+                                        <% } %>
+                                    </div>
+                                    <% if (product.stock > 0) { %>
+                                        <span class="text-green-500 text-xs font-bold mb-2 block">In Stock (<%= product.stock %>)</span>
+                                    <% } else { %>
+                                        <span class="text-red-500 text-xs font-bold mb-2 block">Out of Stock</span>
+                                    <% } %>
+                                    <button class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition-colors">
                                         View Details
                                     </button>
                                 </div>
@@ -93,17 +129,29 @@
                         </div>
                     <% }) %>
                 </div>
+
+                <!-- View All Button -->
                 <div class="mt-8 text-center">
-                    <a href="/user/allProducts" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-lg font-bold">
-                        View All
+                    <a href="/user/allProducts" class="inline-block bg-blue-500 hover:bg-blue-600 text-black font-bold px-6 py-3 rounded-lg transition duration-300">
+                        View All Products
                     </a>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="mt-8 flex justify-center">
+                    <% if (totalPages > 1) { %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <a href="?page=<%= i %>" class="mx-1 px-3 py-2 <%= currentPage === i ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-300' %> rounded">
+                                <%= i %>
+                            </a>
+                        <% } %>
+                    <% } %>
                 </div>
             </div>
         </section>
 
         <section class="relative h-[500px] overflow-hidden">
-            <img src="/images/hphero-arge.2x.jpg" alt="Beats Solo 4" alt="Beats x Kim"
-                class="object-cover w-full h-full">
+            <img src="/images/hphero-arge.2x.jpg" alt="Beats Solo 4" class="object-cover w-full h-full">
             <div class="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent">
                 <div class="container mx-auto px-4 h-full flex items-center">
                     <div class="max-w-lg">
@@ -138,9 +186,6 @@
             </div>
         </section>
     </main>
-
-    <!-- Footer -->
-    <%- include('../partials/footer') %>
 
     <script>
         function toggleWishlist(productId) {
@@ -207,6 +252,5 @@
         });
     </script>
 </body>
-
 </html>
 

@@ -78,14 +78,21 @@ exports.recalculateCart = async (cart) => {
 exports.getCart = async (req, res) => {
     try {
         if (!req.session.user || !req.session.user._id) {
-            return res.status(401).render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0, grandTotal: 0,user:req.user, message: 'Please log in to view your cart.' });
+            return res.status(401).render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0, grandTotal: 0,user:req.user,cartItemCount, message: 'Please log in to view your cart.' });
         }
 
         const userId = req.session.user._id;
         const cart = await Cart.findOne({ userId }).populate('items.product');
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
 
         if (!cart || cart.items.length === 0) {
-            return res.render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0,user:req.user, grandTotal: 0, message: 'Your cart is empty.' });
+            return res.render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0,user:req.user,cartItemCount, grandTotal: 0, message: 'Your cart is empty.' });
         }
 
         // Recalculate totals and offers
@@ -96,7 +103,8 @@ exports.getCart = async (req, res) => {
                 cart: cart.items,
                 subTotal: cart.subTotal,
                 totalDiscount: cart.totalDiscount,
-                grandTotal: cart.grandTotal
+                grandTotal: cart.grandTotal,
+                cartItemCount
             });
         }
 
@@ -105,11 +113,13 @@ exports.getCart = async (req, res) => {
             subTotal: cart.subTotal,
             totalDiscount: cart.totalDiscount,
             grandTotal: cart.grandTotal,
-            message: null,user:req.user
+            message: null,
+            user:req.user,
+            cartItemCount
         });
     } catch (err) {
         console.error('Error in getCart:', err);
-        res.status(500).render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0,user:req.user, grandTotal: 0, message: 'An error occurred while fetching your cart.' });
+        res.status(500).render('user/cart', { cart: [], subTotal: 0, totalDiscount: 0,user:req.user,cartItemCount, grandTotal: 0, message: 'An error occurred while fetching your cart.' });
     }
 };
 
@@ -167,12 +177,17 @@ exports.addToCart = async (req, res) => {
         await this.recalculateCart(cart);
 
         await cart.save();
-        res.status(200).json({ status: 'success', message: 'Product added to cart successfully!' });
+
+        // Calculate cartItemCount after saving the cart
+        const cartItemCount = cart.items.length;
+
+        res.status(200).json({ status: 'success', message: 'Product added to cart successfully!', cartItemCount });
     } catch (err) {
         console.error('Error in addToCart:', err);
         res.status(500).json({ status: 'error', message: 'An error occurred while adding to cart.' });
     }
 };
+
 
 exports.removeFromCart = async (req, res) => {
     try {
@@ -189,16 +204,17 @@ exports.removeFromCart = async (req, res) => {
         }
 
         cart.items = cart.items.filter(item => item.product.toString() !== productId);
-
+        let cartItemCount = cart.items.length;
+        
         if (cart.items.length === 0) {
             await Cart.findOneAndDelete({ userId });
-            return res.status(200).json({ status: 'success', message: 'Product removed from cart.', isEmpty: true });
+            return res.status(200).json({ status: 'success', message: 'Product removed from cart.', cartItemCount, isEmpty: true });
         } else {
             // Recalculate totals
             await this.recalculateCart(cart);
 
             await cart.save();
-            return res.status(200).json({ status: 'success', message: 'Product removed from cart.', isEmpty: false });
+            return res.status(200).json({ status: 'success', message: 'Product removed from cart.',cartItemCount, isEmpty: false });
         }
     } catch (err) {
         console.error('Error in removeFromCart:', err);
@@ -210,17 +226,18 @@ exports.updateQuantity = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
         const userId = req.session.user?._id;
-
+        let cart = await Cart.findOne({ userId });
+        let cartItemCount = cart.items.length;
         if (!userId) {
-            return res.status(401).json({ status: 'error', message: 'User not logged in.' });
+            return res.status(401).json({ status: 'error', message: 'User not logged in.',cartItemCount });
         }
 
         if (!productId || quantity <= 0) {
-            return res.status(400).json({ status: 'error', message: 'Invalid product or quantity.' });
+            return res.status(400).json({ status: 'error', message: 'Invalid product or quantity.',cartItemCount });
         }
 
         if (quantity > 4) {
-            return res.status(400).json({ status: 'error', message: 'You cannot have more than 4 units of a product in your cart.' });
+            return res.status(400).json({ status: 'error', message: 'You cannot have more than 4 units of a product in your cart.',cartItemCount });
         }
 
         const product = await Product.findById(productId);
@@ -228,9 +245,8 @@ exports.updateQuantity = async (req, res) => {
             return res.status(400).json({ status: 'error', message: 'Not enough stock available.' });
         }
 
-        const cart = await Cart.findOne({ userId });
         if (!cart) {
-            return res.status(400).json({ status: 'error', message: 'Cart not found.' });
+            return res.status(400).json({ status: 'error', message: 'Cart not found.',cartItemCount });
         }
 
         const item = cart.items.find(item => item.product.toString() === productId);
@@ -241,13 +257,13 @@ exports.updateQuantity = async (req, res) => {
             await this.recalculateCart(cart);
 
             await cart.save();
-            res.status(200).json({ status: 'success', message: 'Quantity updated successfully!' });
+            res.status(200).json({ status: 'success', message: 'Quantity updated successfully!',cartItemCount });
         } else {
-            res.status(400).json({ status: 'error', message: 'Product not found in cart.' });
+            res.status(400).json({ status: 'error', message: 'Product not found in cart.',cartItemCount });
         }
     } catch (err) {
         console.error('Error in updateQuantity:', err);
-        res.status(500).json({ status: 'error', message: 'An error occurred while updating quantity.' });
+        res.status(500).json({ status: 'error', message: 'An error occurred while updating quantity.',cartItemCount });
     }
 };
 

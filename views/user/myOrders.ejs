@@ -19,79 +19,43 @@
             },
         };
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
 </head>
 
 <body class="min-h-screen bg-gray-900 text-white">
-    <!-- Header -->
-    <%- include('../partials/header',{ user}) %>
+     <!-- Fixed Header -->
+     <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user }) %>
+    </header>
 
     <div class="container mx-auto p-6 flex gap-8">
         <!-- Sidebar -->
-        <%- include('../partials/userSideBar') %>
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
+            <%- include('../partials/userSideBar') %>
+        </div>
 
         <!-- Orders Section -->
-        <div class="flex-1">
+        <div class="flex-1 mt-16 ml-64">
             <div class="rounded-lg border border-none p-6 bg-darker">
                 <h1 class="text-2xl font-bold text-gold mb-8">My Orders</h1>
 
                 <% if (orders.length === 0) { %>
                     <p class="text-gray-400">You haven't placed any orders yet.</p>
                 <% } else { %>
-                    <div class="space-y-6">
-                        <% orders.forEach(order => { %>
-                            <div class="p-4 bg-black-800 border border-gray-900 rounded-lg">
-                                <!-- Order Information -->
-                                <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-lg font-semibold text-gold">
-                                        Order #<%= order._id.toString().slice(-6) %>
-                                    </h2>
-                                    <span class="text-sm text-gray-400"><%= order.formattedDate %></span>
-                                </div>
-
-                                <!-- Product List -->
-                                <div class="space-y-4 mb-4">
-                                    <% order.items.forEach(item => { %>
-                                        <div class="flex items-center space-x-4 bg-gray-700 p-2 rounded-lg">
-                                            <img src="<%= item.productId.image[0] %>" alt="<%= item.productName %>" class="w-16 h-16 object-cover rounded-md">
-                                            <div class="flex-grow">
-                                                <h3 class="font-semibold"><%= item.productName %></h3>
-                                                <p class="text-sm text-gray-300">Quantity: <%= item.quantity %></p>
-                                                <p class="text-sm text-gray-300">Price: ₹<%= item.discountPrice.toFixed(2) %></p>
-                                                <p class="text-sm text-gray-300">Status: <%= item.status %></p>
-                                            </div>
-                                            <p class="text-sm font-semibold">₹<%= (item.quantity * item.discountPrice).toFixed(2) %></p>
-                                            <% if (item.status === 'Pending' || item.status === 'Processing') { %>
-                                                <button onclick="cancelItem('<%= order._id %>', '<%= item._id %>')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm">
-                                                    Cancel
-                                                </button>
-                                            <% } else if (item.status === 'Delivered') { %>
-                                                <button onclick="requestReturn('<%= order._id %>', '<%= item._id %>')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded text-sm">
-                                                    Return
-                                                </button>
-                                            <% } %>
-                                        </div>
-                                    <% }) %>
-                                </div>
-
-                                <!-- Order Details -->
-                                <!-- <div class="grid grid-cols-2 gap-2 text-sm text-gray-300 mb-4">
-                                    <p>Status: <span class="font-semibold text-white"><%= order.orderStatus %></span></p>
-                                    <p>Total Items: <span class="font-semibold text-white"><%= order.totalItems %></span></p>
-                                    <p>Total Amount: <span class="font-semibold text-white">₹<%= order.payment.discountPrice.toFixed(2) %></span></p>
-                                    <p>Payment Method: <span class="font-semibold text-white"><%= order.payment.paymentMethod %></span></p>
-                                    <p>Payment Status: <span class="font-semibold text-white"><%= order.payment.paymentStatus %></span></p>
-                                </div> -->
-
-                                <!-- Order Actions -->
-                                <div class="flex justify-between items-center mt-4">
-                                    <button 
-                                        onclick="viewDetails('<%= order._id %>')" 
-                                        class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600">
-                                        View Details
-                                    </button>
-                                </div>
-                            </div>
-                        <% }) %>
+                    <div id="ordersList" class="space-y-6">
+                        <!-- Orders will be dynamically inserted here -->
+                    </div>
+                    <!-- Pagination -->
+                    <div class="mt-6 flex justify-center">
+                        <button id="prevPage" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">&lt; Previous</button>
+                        <span id="currentPage" class="px-4 py-2">Page 1</span>
+                        <button id="nextPage" class="bg-blue-500 text-white px-4 py-2 rounded ml-2">Next &gt;</button>
                     </div>
                 <% } %>
             </div>
@@ -118,7 +82,7 @@
                 <input type="hidden" id="returnItemId" name="itemId">
                 <div class="mb-4">
                     <label for="returnReason" class="block text-sm font-medium text-gray-300 mb-2">Reason for Return</label>
-                    <textarea id="returnReason" name="reason" rows="3" class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none" required></textarea>
+                    <textarea id="returnReason" name="reason" rows="3" class="w-full px-3 py-2 bg-gray-900 border-none rounded-lg focus:outline-none" required></textarea>
                 </div>
                 <div class="flex justify-end">
                     <button type="button" onclick="closeReturnModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
@@ -129,6 +93,85 @@
     </div>
 
     <script>
+        let currentPage = 1;
+        const ordersPerPage = 5;
+        let allOrders = <%- JSON.stringify(orders) %>;
+
+        function renderOrders(page) {
+            const startIndex = (page - 1) * ordersPerPage;
+            const endIndex = startIndex + ordersPerPage;
+            const ordersToShow = allOrders.slice(startIndex, endIndex);
+
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+
+            ordersToShow.forEach(order => {
+                const orderHtml = `
+                    <div class="p-4 bg-black-800 border border-gray-900 rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gold">
+                                Order #${order._id.toString().slice(-6)}
+                            </h2>
+                            <span class="text-sm text-gray-400">${order.formattedDate}</span>
+                        </div>
+                        <div class="space-y-4 mb-4">
+                            ${order.items.map(item => `
+                                <div class="flex items-center space-x-4 bg-gray-900 p-2 rounded-lg">
+                                    <img src="${item.productId.image[0]}" alt="${item.productName}" class="w-16 h-16 object-cover rounded-md">
+                                    <div class="flex-grow">
+                                        <h3 class="font-semibold">${item.productName}</h3>
+                                        <p class="text-sm text-gray-300">Quantity: ${item.quantity}</p>
+                                        <p class="text-sm text-gray-300">Price: ₹${item.price.toFixed(2)}</p>
+                                        <p class="text-sm text-gray-300">Status: ${item.status}</p>
+                                    </div>
+                                    <p class="text-sm font-semibold">₹${(item.quantity * item.discountPrice).toFixed(2)}</p>
+                                    ${item.status === 'Pending' || item.status === 'Processing' ?
+                                        `<button onclick="cancelItem('${order._id}', '${item._id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm">
+                                            Cancel
+                                        </button>` :
+                                        item.status === 'Delivered' ?
+                                        `<button onclick="requestReturn('${order._id}', '${item._id}')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded text-sm">
+                                            Return
+                                        </button>` :
+                                        ''
+                                    }
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <button 
+                                onclick="viewDetails('${order._id}')" 
+                                class="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+                ordersList.innerHTML += orderHtml;
+            });
+
+            document.getElementById('currentPage').textContent = `Page ${page}`;
+            document.getElementById('prevPage').disabled = page === 1;
+            document.getElementById('nextPage').disabled = endIndex >= allOrders.length;
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderOrders(currentPage);
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage * ordersPerPage < allOrders.length) {
+                currentPage++;
+                renderOrders(currentPage);
+            }
+        });
+
+        // Initial render
+        renderOrders(currentPage);
+
         async function viewDetails(orderId) {
             try {
                 const response = await fetch(`/user/order/details/${orderId}`);
@@ -151,7 +194,7 @@
                         <h3 class="font-bold text-lg mt-4 mb-2 text-gold">Items</h3>
                         <div class="space-y-2">
                             ${data.order.items.map(item => `
-                                <div class="flex items-center space-x-4 bg-gray-700 p-2 rounded-lg">
+                                <div class="flex items-center space-x-4 bg-gray-900 p-2 rounded-lg">
                                     <img src="${item.productId.image[0]}" alt="${item.productName}" class="w-16 h-16 object-cover rounded-md">
                                     <div>
                                         <p class="font-semibold">${item.productName}</p>
@@ -275,4 +318,3 @@
 </body>
 
 </html>
-

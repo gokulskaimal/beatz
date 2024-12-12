@@ -19,20 +19,32 @@
             },
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
 </head>
 
 <body class="min-h-screen bg-gray-900 text-white">
-    <%- include('../partials/header',{ user}) %>
+    <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user, cartItemCount }) %>
+    </header>
     <div class="container mx-auto p-6 flex gap-8">
-        <%- include('../partials/userSideBar') %>
+        <!-- Sidebar -->
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
+            <%- include('../partials/userSideBar') %>
+        </div>
 
-        <div class="flex-1">
+        <div class="flex-1 mt-16 ml-64">
             <div class="rounded-lg border border-none p-6 h-full bg-darker">
                 <h1 class="text-2xl font-bold text-gold mb-8">Address Management</h1>
 
                 <div id="addressList" class="space-y-4">
                     <% addresses.forEach(address => { %>
-                    <div class="p-4 bg-gray-800 border border-gray-700 rounded-lg">
+                    <div class="p-4 bg-gray-900 border border-gray-900 rounded-lg">
                         <h2 class="text-lg font-semibold">
                             <%= address.name %>
                         </h2>
@@ -62,32 +74,32 @@
 
     <!-- Add/Edit Address Modal -->
     <div id="addressModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-        <div class="bg-gray-800 p-6 rounded-lg w-96">
+        <div class="bg-gray-900 p-6 rounded-lg w-96">
             <h2 id="modalTitle" class="text-lg font-bold text-gold mb-4">Add Address</h2>
             <form id="addressForm">
                 <input type="hidden" id="addressId" name="addressId">
                 <div class="space-y-4">
                     <input type="text" id="name" name="name" placeholder="Name" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <select id="addressType" name="addressType" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                         <option value="" disabled selected>Select Type</option>
                         <option value="Home">Home</option>
                         <option value="Work">Work</option>
                         <option value="Other">Other</option>
                     </select>
                     <input type="text" id="street" name="street" placeholder="Street" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <input type="text" id="city" name="city" placeholder="City" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <input type="text" id="state" name="state" placeholder="State" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <input type="text" id="country" name="country" placeholder="Country" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                     <input type="tel" id="phone" name="phone" placeholder="Phone Number" required
-                        class="w-full bg-gray-700 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                        class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                 </div>
                 <div class="mt-6 flex justify-end space-x-4">
                     <button type="button" onclick="closeAddressModal()"

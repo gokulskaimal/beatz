@@ -19,16 +19,28 @@
             },
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-darker {
+                background-color: #0a0a0a;
+            }
+        }
+    </style>
 </head>
 
-<body class="min-h-screen bg-gray-900 text-white">
-    <%- include('../partials/header',{ user}) %>
-        <div class="container mx-auto p-6 flex gap-8">
-            <!-- Sidebar -->
 
+<body class="min-h-screen bg-gray-900 text-white">
+    <header class="fixed top-0 left-0 right-0 bg-darker z-50">
+        <%- include('../partials/header', { user }) %>
+    </header>
+    <div class="container mx-auto p-6 flex gap-8">
+        <!-- Sidebar -->
+        <div class="w-64 fixed left-0 top-16 bottom-0 bg-darker p-4 overflow-hidden">
             <%- include('../partials/userSideBar') %>
+        </div>
+
                 <!-- Main Content -->
-                <main class="container mx-auto px-4 py-8">
+                <main class="container mx-auto px-4 py-8 flex-1 mt-16 ml-64">
                     <h1 class="text-3xl text-yellow-500 font-bold mb-8">Available Coupons</h1>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -48,7 +60,7 @@
                     </div>
                 </main>
         </div>
-        <%- include('../partials/footer') %>
+
         <script>
             function copyCouponCode(code) {
                 navigator.clipboard.writeText(code).then(() => {

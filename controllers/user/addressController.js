@@ -1,15 +1,26 @@
 const Address = require('../../models/addressModel');
+const Cart = require('../../models/cartModel')
+
 
 exports.getAddresses = async (req, res) => {
     try {
         const userId = req.user._id;
         const addresses = await Address.find({ userId });
-        res.render('user/address', { addresses, message: null ,user:req.user});
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
+        res.render('user/address', { addresses, message: null ,user:req.user,cartItemCount});
+      
+
     } catch (error) {
         console.error('Error fetching addresses:', error);
         res.status(500).render('user/address', {
             addresses: [],
-            message: 'Failed to fetch addresses. Please try again later.',user:req.user
+            message: 'Failed to fetch addresses. Please try again later.',user:req.user,cartItemCount
         });
     }
 };
@@ -35,7 +46,7 @@ exports.addAddress = async (req, res) => {
             phone,
         });
 
-        res.status(201).json({ message: 'Address added successfully!', address: newAddress });
+        res.status(201).json({ message: 'Address added successfully!', address: newAddress , cartItemCount});
     } catch (error) {
         console.error('Error adding address:', error);
         res.status(500).json({ message: 'Failed to add address. Please try again later.' });

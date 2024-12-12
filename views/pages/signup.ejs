@@ -28,7 +28,7 @@
   <%- include('../partials/header') %>
 
     <main class="flex flex-col items-center justify-center min-h-screen py-12">
-      <div class="bg-gray-900 p-8 rounded-lg shadow-xl w-full max-w-md border border-yellow-500">
+      <div class="bg-gray-900 p-8 rounded-lg shadow-xl w-full max-w-md border border-none">
         <h1 class="text-center text-2xl font-bold text-yellow-500 mb-6">Create an Account</h1>
         <form action="/auth/signup" method="POST" onsubmit="return handleSignupSubmit(event)" class="space-y-4">
           <input type="text" id="message" name="message" value="<%= message || '' %>" style="display: none;">
@@ -63,13 +63,13 @@
               class="w-full p-2 rounded bg-gray-800 text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-yellow-500 focus:border-transparent">
           </div>
           <button type="submit" id="signupButton"
-    class="w-full py-2 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400 transition duration-300">
-    Create Account
-  </button>
+            class="w-full py-2 bg-yellow-500 text-black font-bold rounded hover:bg-yellow-400 transition duration-300">
+            Create Account
+          </button>
         </form>
         <div class="my-6 text-center text-sm text-gray-500">or</div>
         <button type="button" onclick="window.location.href='/auth/google'"
-          class="w-full py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition duration-300 flex items-center justify-center">
+          class="w-full py-2 bg-gray-900 text-white rounded hover:bg-gray-700 transition duration-300 flex items-center justify-center">
           <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -107,8 +107,8 @@
           const password = document.getElementById('password').value;
           const confirmPassword = document.getElementById('confirmPassword').value;
           const signupButton = document.getElementById('signupButton');
-  signupButton.disabled = true;
-  signupButton.textContent = 'Creating Account...';
+          signupButton.disabled = true;
+          signupButton.textContent = 'Creating Account...';
           // Name Validation
           const nameRegex = /[a-z]{2,}$/;
           if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {

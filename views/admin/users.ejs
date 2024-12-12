@@ -36,12 +36,12 @@
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 p-8 bg-darker">
+    <div class="flex-1 p-8 bg-darker overflow-y-auto">
       <div class="flex justify-between items-center mb-8">
-        <button
+        <!-- <button
           class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors hidden duration-200">
           Add New Category
-        </button>
+        </button> -->
         <div class="relative">
           <input
             class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -98,24 +98,7 @@
     </div>
   </div>
 
-  <div class="mt-4 flex justify-center">
-    <nav class="inline-flex">
-      <% if (currentPage> 1) { %>
-        <a href="/admin/categories?page=<%= currentPage - 1 %>"
-          class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
-        <% } %>
-          <% for (let i=1; i <=totalPages; i++) { %>
-            <a href="/admin/categories?page=<%= i %>"
-              class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
-              <%= i %>
-            </a>
-            <% } %>
-              <% if (currentPage < totalPages) { %>
-                <a href="/admin/categories?page=<%= currentPage + 1 %>"
-                  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
-                <% } %>
-    </nav>
-  </div>
+ 
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
