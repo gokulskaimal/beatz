@@ -26,8 +26,8 @@ exports.getCheckout = async (req, res) => {
                 availableCoupons: [], 
                 user,
                 appliedCoupon: null,
-                user:req.user,
-                cartItemCount:cart.items.length
+                user: req.user,
+                cartItemCount: 0
             });
         }
 
@@ -117,8 +117,8 @@ exports.getCheckout = async (req, res) => {
             availableCoupons,
             user,
             appliedCouponCode,
-            user:req.user,
-            cartItemCount:cart.items.length
+            user: req.user,
+            cartItemCount: cart.items.length
         });
     } catch (error) {
         console.error("Get checkout error: ", error);
@@ -282,58 +282,6 @@ exports.removeCoupon = async (req, res) => {
         res.status(500).json({ message: "An error occurred while removing the coupon" });
     }
 };
-
-// Helper function to calculate totals
-async function calculateTotals(userId) {
-    const cart = await Cart.findOne({ userId }).populate('items.product');
-    let totalPrice = 0;
-    let totalDiscountPrice = 0;
-    let totalItems = 0;
-    let discount = 0;
-
-    for (let item of cart.items) {
-        if (item.product && !item.product.isBlocked) {
-            const itemOriginalPrice = item.product.price * item.quantity;
-            const itemDiscountPrice = item.product.discountPrice * item.quantity;
-            
-            totalPrice += itemOriginalPrice;
-            totalDiscountPrice += itemDiscountPrice;
-            totalItems += item.quantity;
-            discount += itemOriginalPrice - itemDiscountPrice;
-
-            // Apply offers (product and category)
-            const productOffer = await Offer.findOne({
-                applicableProduct: item.product._id,
-                startDate: { $lte: new Date() },
-                endDate: { $gte: new Date() },
-                isActive: true
-            });
-
-            const categoryOffer = await Offer.findOne({
-                applicableCategory: item.product.category,
-                startDate: { $lte: new Date() },
-                endDate: { $gte: new Date() },
-                isActive: true
-            });
-
-            let bestDiscount = 0;
-            if (productOffer) {
-                bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
-            }
-            if (categoryOffer) {
-                bestDiscount = Math.max(bestDiscount, categoryOffer.discountPercentage);
-            }
-
-            if (bestDiscount > 0) {
-                const offerDiscount = itemDiscountPrice * (bestDiscount / 100);
-                totalDiscountPrice -= offerDiscount;
-                discount += offerDiscount;
-            }
-        }
-    }
-
-    return { totalPrice, totalDiscountPrice, discount, totalItems };
-}
 
 module.exports = exports;
 

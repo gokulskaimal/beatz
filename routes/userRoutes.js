@@ -52,6 +52,9 @@ router.get('/order/details/:orderId', userAuth.checkSession, orderController.get
 router.post('/order/:orderId/cancel/:itemId', userAuth.checkSession, orderController.cancelOrderItem);
 router.post('/order/return-request', userAuth.checkSession, orderController.requestReturn);
 router.post('/order/verify-payment', userAuth.checkSession, orderController.verifyPayment);
+router.get('/order/invoice/:orderId', userAuth.checkSession, orderController.generateInvoice);
+router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
+router.post('/order/payment-failed', userAuth.checkSession, orderController.handlePaymentFailure);
 
 // Wallet routes
 router.get('/wallet', userAuth.checkSession, walletController.getWallet);

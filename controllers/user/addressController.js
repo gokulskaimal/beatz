@@ -33,7 +33,13 @@ exports.addAddress = async (req, res) => {
         if (!name || !addressType || !street || !city || !state || !zipCode || !country || !phone) {
             return res.status(400).json({ message: 'All fields are required!' });
         }
-
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length
+            }
+        }
         const newAddress = await Address.create({
             userId,
             name,

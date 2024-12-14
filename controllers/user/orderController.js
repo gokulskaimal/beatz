@@ -8,6 +8,8 @@ const Wallet = require('../../models/walletModel');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { format } = require('date-fns');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -72,7 +74,6 @@ exports.placeOrder = async (req, res) => {
                 discountPrice -= couponDiscount;
                 discount += couponDiscount;
 
-                // Update coupon usage
                 await Coupon.findByIdAndUpdate(coupon._id, {
                     $inc: { totalUsageLimit: -1 },
                     $push: {
@@ -90,6 +91,11 @@ exports.placeOrder = async (req, res) => {
             if (!wallet || wallet.balance < discountPrice) {
                 return res.status(400).json({ message: "Insufficient wallet balance" });
             }
+        }
+
+        // Check if COD is allowed for orders above Rs 1000
+        if (paymentMethod === 'Cash On Delivery' && discountPrice > 1000) {
+            return res.status(400).json({ message: "Cash On Delivery is not available for orders above Rs 1000" });
         }
 
         const order = new Orders({
@@ -142,10 +148,12 @@ exports.placeOrder = async (req, res) => {
             });
 
             savedOrder.payment.razorpayOrderId = razorpayOrder.id;
+            savedOrder.payment.paymentStatus = 'Pending';
             await savedOrder.save();
 
             return res.status(200).json({ order: razorpayOrder });
-        } else if (paymentMethod === 'Wallet') {
+        } 
+        else if (paymentMethod === 'Wallet') {
             await Wallet.findOneAndUpdate(
                 { user: userId },
                 { 
@@ -169,37 +177,90 @@ exports.placeOrder = async (req, res) => {
     }
 };
 
+exports.continuePayment = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Orders.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        if (order.payment.paymentStatus !== 'Failed' && order.payment.paymentStatus !== 'Pending') {
+            return res.status(400).json({ message: 'This order does not require payment continuation' });
+        }
+       
+        const razorpayOrder = await razorpay.orders.create({
+            amount: Math.round(order.payment.discountPrice * 100),
+            currency: 'INR',
+            receipt: order._id.toString()
+        });
+
+        order.payment.razorpayOrderId = razorpayOrder.id;
+        order.payment.paymentStatus = 'Pending';
+        await order.save();
+
+        res.json({
+            orderId: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            key: process.env.RAZORPAY_KEY_ID
+        });
+    } catch (error) {
+        console.error('Error continuing payment:', error);
+        res.status(500).json({ message: 'Failed to continue payment' });
+    }
+};
+
 exports.verifyPayment = async (req, res) => {
     try {
-        const { paymentResponse, order } = req.body;
-        const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-        shasum.update(`${order.id}|${paymentResponse.razorpay_payment_id}`);
-        const digest = shasum.digest('hex');
+        const { orderId, paymentId, signature } = req.body;
+        const order = await Orders.findOne({ 'payment.razorpayOrderId': orderId });
 
-        if (digest === paymentResponse.razorpay_signature) {
-            const updatedOrder = await Orders.findOneAndUpdate(
-                { 'payment.razorpayOrderId': order.id },
-                { 
-                    $set: { 
-                        'payment.paymentStatus': 'Completed',
-                        'payment.razorpayPaymentId': paymentResponse.razorpay_payment_id
-                    }
-                },
-                { new: true }
-            );
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
 
-            if (!updatedOrder) {
-                console.error('Order not found for Razorpay order ID:', order.id);
-                return res.status(404).json({ success: false, message: 'Order not found' });
-            }
+        const body = orderId + "|" + paymentId;
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest("hex");
 
-            res.json({ success: true, orderId: updatedOrder._id });
+        if (expectedSignature === signature) {
+            order.payment.paymentStatus = 'Completed';
+            order.payment.razorpayPaymentId = paymentId;
+            await order.save();
+
+            res.json({ success: true, message: 'Payment verified successfully', orderId: order._id });
         } else {
-            res.status(400).json({ success: false, message: 'Invalid signature' });
+            order.payment.paymentStatus = 'Failed';
+            await order.save();
+
+            res.status(400).json({ success: false, message: 'Payment verification failed' });
         }
     } catch (error) {
         console.error("Payment verification error: ", error);
         res.status(500).json({ success: false, message: 'Payment verification failed' });
+    }
+};
+
+exports.handlePaymentFailure = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await Orders.findOne({ 'payment.razorpayOrderId': orderId });
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        order.payment.paymentStatus = 'Failed';
+        await order.save();
+
+        res.json({ message: 'Payment failure recorded successfully', orderId: order._id });
+    } catch (error) {
+        console.error('Error handling payment failure:', error);
+        res.status(500).json({ message: 'Failed to handle payment failure' });
     }
 };
 
@@ -319,9 +380,8 @@ exports.getOrderConfirmation = async (req, res) => {
             cartItemCount = cart.items.length;
         }
 
-
         order.formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
-        res.render('user/orderConfirmation', { order ,user:req.user,cartItemCount:cart.items.length});
+        res.render('user/orderConfirmation', { order, user: req.user, cartItemCount: cart.items.length });
     } catch (error) {
         console.error('Error fetching order confirmation:', error);
         res.status(500).render('error', { message: 'Failed to fetch order confirmation' });
@@ -370,7 +430,7 @@ exports.getOrderDetails = async (req, res) => {
             cartItemCount = cart.items.length;
         }
 
-        res.json({ order, formattedDate,cartItemCount });
+        res.json({ order, formattedDate, cartItemCount });
     } catch (error) {
         console.error('Error fetching order details:', error);
         res.status(500).json({ message: 'Failed to fetch order details' });
@@ -411,182 +471,71 @@ exports.requestReturn = async (req, res) => {
                 cartItemCount = cart.items.length
             }
         }
-        res.json({ message: 'Return request submitted successfully',cartItemCount });
+        res.json({ message: 'Return request submitted successfully', cartItemCount });
     } catch (error) {
         console.error('Error requesting return:', error);
         res.status(500).json({ message: 'Failed to submit return request' });
     }
 };
 
-module.exports = exports;
-
-// Helper function to calculate refund amount
-const calculateRefundAmount = (order, item) => {
-    let refundAmount = item.subtotal;
-    if (order.payment.appliedCoupon) {
-        const orderTotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
-        const discountRatio = order.payment.couponDiscount / orderTotal;
-        const itemCouponDiscount = item.subtotal * discountRatio;
-        refundAmount -= itemCouponDiscount;
-    }
-    return refundAmount;
-};
-
-// Helper function to update product stock
-const updateProductStock = async (productId, quantity) => {
-    await Product.findByIdAndUpdate(productId, {
-        $inc: { stock: quantity }
-    });
-};
-
-// Helper function to process refund
-const processRefund = async (userId, amount, orderId) => {
-    await Wallet.findOneAndUpdate(
-        { user: userId },
-        { 
-            $inc: { balance: amount },
-            $push: { 
-                transactions: {
-                    amount: amount,
-                    type: 'credit',
-                    description: `Refund for order ${orderId}`,
-                    orderId: orderId
-                }
-            }
-        },
-        { upsert: true }
-    );
-};
-
-// Additional function to handle order status updates
-exports.updateOrderStatus = async (req, res) => {
-    try {
-        const { orderId, status } = req.body;
-        const order = await Orders.findById(orderId);
-
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        order.orderStatus = status;
-        if (status === 'Delivered') {
-            order.deliveryDate = new Date();
-        }
-
-        await order.save();
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
-        res.json({ message: 'Order status updated successfully', order,cartItemCount });
-    } catch (error) {
-        console.error('Error updating order status:', error);
-        res.status(500).json({ message: 'Failed to update order status' });
-    }
-};
-
-// Function to generate order invoice
 exports.generateInvoice = async (req, res) => {
     try {
         const orderId = req.params.orderId;
         const order = await Orders.findById(orderId).populate('items.productId');
 
-        if (!order) { 
+        if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
-        // Generate PDF invoice logic here
-        // You might want to use a library like PDFKit to generate the PDF
 
-        res.json({ message: 'Invoice generated successfully', invoiceUrl: 'path/to/invoice.pdf',cartItemCount });
+        const doc = new PDFDocument();
+        const filename = `invoice-${orderId}.pdf`;
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        doc.pipe(res);
+
+        // Add content to PDF
+        doc.fontSize(18).text('Invoice', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Order ID: ${order._id}`);
+        doc.text(`Date: ${format(order.orderDate, 'MMMM dd, yyyy')}`);
+        doc.moveDown();
+
+        // Customer details
+        doc.text(`Customer: ${order.customer.customerName}`);
+        doc.text(`Email: ${order.customer.customerEmail}`);
+        doc.moveDown();
+
+        // Shipping Address
+        doc.text('Shipping Address:');
+        doc.text(order.customer.shippingAddress.name);
+        doc.text(order.customer.shippingAddress.street);
+        doc.text(`${order.customer.shippingAddress.city}, ${order.customer.shippingAddress.state} ${order.customer.shippingAddress.zipCode}`);
+        doc.text(order.customer.shippingAddress.country);
+        doc.moveDown();
+
+        // Order Items
+        doc.text('Order Items:');
+        order.items.forEach(item => {
+            doc.text(`${item.productName} - Quantity: ${item.quantity} - Price: ₹${item.discountPrice.toFixed(2)}`);
+        });
+        doc.moveDown();
+
+        // Total
+        doc.text(`Subtotal: ₹${order.payment.totalAmount.toFixed(2)}`);
+        doc.text(`Discount: ₹${order.payment.discount.toFixed(2)}`);
+        doc.text(`Total: ₹${order.payment.discountPrice.toFixed(2)}`);
+
+        doc.end();
+
     } catch (error) {
         console.error('Error generating invoice:', error);
         res.status(500).json({ message: 'Failed to generate invoice' });
     }
 };
 
-// Function to get order statistics
-exports.getOrderStatistics = async (req, res) => {
-    try {
-        const totalOrders = await Orders.countDocuments();
-        const completedOrders = await Orders.countDocuments({ orderStatus: 'Delivered' });
-        const pendingOrders = await Orders.countDocuments({ orderStatus: 'Pending' });
-        const cancelledOrders = await Orders.countDocuments({ orderStatus: 'Cancelled' });
 
-        const totalRevenue = await Orders.aggregate([
-            { $match: { orderStatus: 'Delivered' } },
-            { $group: { _id: null, total: { $sum: '$payment.discountPrice' } } }
-        ]);
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
 
-        res.json({
-            totalOrders,
-            completedOrders,
-            pendingOrders,
-            cancelledOrders,
-            totalRevenue: totalRevenue[0]?.total || 0,
-            cartItemCount
-        });
-    } catch (error) {
-        console.error('Error fetching order statistics:', error);
-        res.status(500).json({ message: 'Failed to fetch order statistics' });
-    }
-};
-
-// Function to handle bulk order actions (e.g., cancel multiple orders)
-exports.bulkOrderAction = async (req, res) => {
-    try {
-        const { orderIds, action } = req.body;
-
-        if (!Array.isArray(orderIds) || orderIds.length === 0) {
-            return res.status(400).json({ message: 'Invalid order IDs' });
-        }
-
-        let updateOperation;
-        switch (action) {
-            case 'cancel':
-                updateOperation = { orderStatus: 'Cancelled' };
-                break;
-            case 'mark-as-delivered':
-                updateOperation = { orderStatus: 'Delivered', deliveryDate: new Date() };
-                break;
-            default:
-                return res.status(400).json({ message: 'Invalid action' });
-        }
-
-        const result = await Orders.updateMany(
-            { _id: { $in: orderIds } },
-            { $set: updateOperation }
-        );
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
-        res.json({ message: `Bulk action completed. ${result.nModified} orders updated.`,cartItemCount });
-    } catch (error) {
-        console.error('Error performing bulk order action:', error);
-        res.status(500).json({ message: 'Failed to perform bulk order action' });
-    }
-};
-
-// Export all the new functions
-
+module.exports = exports;
 

@@ -66,83 +66,63 @@
 
     <!-- Include Footer -->
     <%- include('../partials/footer') %>
-
-      <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          // Get the message from query string
-          const message = document.getElementById("message").value;
-          if (message) {
-            const messageBox = document.createElement("div");
-            messageBox.textContent = message;
-            messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
-            document.body.insertBefore(messageBox, document.body.firstChild);
-
-            // Auto-hide the message after 5 seconds
-            setTimeout(() => {
-              messageBox.remove();
-            }, 5000);
-          }
-
-          // Resend OTP functionality
-          const resendOtpBtn = document.getElementById('resendOtpBtn');
-          const timerSpan = document.getElementById('timer');
-
-          let resendTimeout = localStorage.getItem('resendTimeout');
-          if (resendTimeout) {
-            const remainingTime = Math.max(0, resendTimeout - Date.now());
-            startResendTimer(remainingTime);
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resendOtpBtn = document.getElementById('resendOtpBtn');
+      const timerSpan = document.getElementById('timer');
+    
+      // Initialize or fetch remaining time
+      let resendTimeout = localStorage.getItem('resendTimeout');
+      if (resendTimeout) {
+        const remainingTime = Math.max(0, resendTimeout - Date.now());
+        startResendTimer(remainingTime);
+      } else {
+        startResendTimer(0);
+      }
+    
+      function startResendTimer(remainingTime) {
+        resendOtpBtn.disabled = true;
+        const countdown = setInterval(() => {
+          const secondsLeft = Math.floor(remainingTime / 1000);
+          timerSpan.textContent = `00:${secondsLeft.toString().padStart(2, '0')}`;
+    
+          if (remainingTime <= 0) {
+            clearInterval(countdown);
+            resendOtpBtn.disabled = false;
+            resendOtpBtn.textContent = "Resend OTP";
+            timerSpan.textContent = "";
+            localStorage.removeItem('resendTimeout');
           } else {
-            startResendTimer(0);
+            remainingTime -= 1000;
+            localStorage.setItem('resendTimeout', Date.now() + remainingTime);
           }
-
-          // Start the countdown timer for the resend OTP button
-          function startResendTimer(remainingTime) {
-            const countdown = setInterval(() => {
-              const timeLeft = Math.max(0, remainingTime - 1000);
-              const secondsLeft = Math.floor(timeLeft / 1000);
-
-              timerSpan.textContent = `00:${secondsLeft} `;
-
-              if (secondsLeft <= 0) {
-                clearInterval(countdown);
-                resendOtpBtn.disabled = false;
-                resendOtpBtn.textContent = "Resend OTP";
-                localStorage.removeItem('resendTimeout');
-              } else {
-                remainingTime = timeLeft;
-                localStorage.setItem('resendTimeout', Date.now() + remainingTime);
-              }
-            }, 1000);
-          }
-
-          // Enable resend OTP and reset the timer
-          resendOtpBtn.addEventListener('click', async () => {
-            try {
-              const response = await fetch('/auth/resend-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-              });
-
-              const data = await response.json();
-
-              if (response.ok) {
-                Swal.fire('Success', data.message, 'success');
-              } else {
-                Swal.fire('Error', data.message, 'error');
-              }
-            } catch (error) {
-              Swal.fire('Error', 'Failed to resend OTP. Please try again.', 'error');
-            }
-
-            // Reset timer and disable the button
-            resendOtpBtn.disabled = true;
-            resendOtpBtn.textContent = 'Please wait...';
-            const timeOutDuration = 60000; // 1 minute timeout
-            localStorage.setItem('resendTimeout', Date.now() + timeOutDuration);
-            startResendTimer(timeOutDuration);
+        }, 1000);
+      }
+    
+      resendOtpBtn.addEventListener('click', async () => {
+        try {
+          const response = await fetch('/auth/resend-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
           });
-        });
-      </script>
+    
+          const data = await response.json();
+    
+          if (response.ok) {
+            Swal.fire('Success', data.message, 'success');
+            startResendTimer(60000); // Start a new 1-minute timer
+          } else {
+            Swal.fire('Error', data.message, 'error');
+          }
+        } catch (error) {
+          Swal.fire('Error', 'Failed to resend OTP. Please try again.', 'error');
+        }
+    
+        resendOtpBtn.disabled = true;
+        resendOtpBtn.textContent = 'Please wait...';
+      });
+    });
+    </script>
 </body>
 
 </html>

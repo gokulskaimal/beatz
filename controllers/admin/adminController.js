@@ -27,8 +27,12 @@ exports.getDashboard = (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  req.session.admin = null
-    res.redirect('/admin/login');
+  if (req.session.admin) {
+    delete req.session.admin;
+    res.redirect('/admin/login?message=Logged out successfully');
+  } else {
+    res.redirect('/admin/login?message=No active session to log out');
+  }
 };
 
 // Get Users with Pagination and Search

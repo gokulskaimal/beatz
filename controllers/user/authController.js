@@ -201,12 +201,12 @@ exports.postLogin = async (req, res) => {
 
 // Handle user logout
 exports.logout = (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
-    }
+  if (req.session.user) {
+    delete req.session.user;
     res.redirect('/auth/login?message=Logged out successfully');
-  });
+  } else {
+    res.redirect('/auth/login?message=No active session to log out');
+  }
 };
 
 // Render Forgot Password Page
@@ -344,21 +344,19 @@ exports.resetPassword = async (req, res) => {
 
 
 exports.resendOtp = async (req, res) => {
-  const email = req.session.tempEmail;
+  const email = req.session?.tempEmail;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: 'Session expired or email not found. Please try again.',
+    });
+  }
 
   try {
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Session expired or email not found. Please try again.',
-      });
-    }
-
-    // Generate a new OTP
     const otp = crypto.randomInt(100000, 999999);
     otpStore[email] = { otp, timestamp: Date.now() };
 
-    // Send OTP via email
     await sendEmail(email, 'Your New OTP', `Your OTP is ${otp}`);
     console.log(`New OTP sent to ${email}: ${otp}`);
 
