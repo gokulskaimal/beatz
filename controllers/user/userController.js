@@ -2,7 +2,7 @@ const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
 const Offer = require('../../models/offerModel');
 const Cart = require('../../models/cartModel');
-const User = require('../../models//userModel')
+const User = require('../../models/userModel');
 
 exports.getHome = async (req, res) => {
     try {
@@ -10,7 +10,7 @@ exports.getHome = async (req, res) => {
         const limit = 9; // Number of products per page
 
         // Build the filter object
-        let filter = {};
+        let filter = { isBlocked: false };
         if (search) filter.product_name = { $regex: search, $options: 'i' };
         if (category) filter.category = category;
         if (brand) filter['specifications.brand'] = brand;
@@ -29,31 +29,38 @@ exports.getHome = async (req, res) => {
             rating: { rating: -1 },
         };
 
-        // Fetch products
+        // Fetch products with active categories
         const products = await Product.find(filter)
+            .populate({
+                path: 'category',
+                match: { status: 'Active' }
+            })
             .sort(sortOptions[sort] || sortOptions.newest)
             .skip((page - 1) * limit)
             .limit(limit);
 
-        const totalProducts = await Product.countDocuments(filter);
+        // Filter out products with inactive categories
+        const filteredProducts = products.filter(product => product.category);
+
+        const totalProducts = await Product.countDocuments({
+            ...filter,
+            category: { $in: await Category.find({ status: 'Active' }).distinct('_id') }
+        });
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Fetch categories and brands for filters
-        const categories = await Category.find();
-        const brands = await Product.distinct('specifications.brand');
+        // Fetch active categories and brands for filters
+        const categories = await Category.find({ status: 'Active' });
+        const brands = await Product.distinct('specifications.brand', { isBlocked: false });
 
         // Determine if a product is new (e.g., added in the last 7 days)
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
         // Process products with offers and new flag
-        const processedProducts = await Promise.all(products.map(async (product) => {
-            // Convert to plain object to allow modifications
+        const processedProducts = await Promise.all(filteredProducts.map(async (product) => {
             const productObj = product.toObject();
             
-            // Check if product is new
             productObj.isNew = product.createdAt > sevenDaysAgo;
 
-            // Find applicable offers
             const productOffer = await Offer.findOne({
                 applicableProduct: product._id,
                 startDate: { $lte: new Date() },
@@ -62,13 +69,12 @@ exports.getHome = async (req, res) => {
             });
 
             const categoryOffer = await Offer.findOne({
-                applicableCategory: product.category,
+                applicableCategory: product.category._id,
                 startDate: { $lte: new Date() },
                 endDate: { $gte: new Date() },
                 isActive: true
             });
 
-            // Calculate best discount
             let bestDiscount = 0;
             let bestOfferSource = null;
 
@@ -84,7 +90,6 @@ exports.getHome = async (req, res) => {
                 }
             }
 
-            // Apply best discount
             let finalDiscountPrice = productObj.discountPrice;
             let offer = null;
 
@@ -113,7 +118,6 @@ exports.getHome = async (req, res) => {
         }
 
         if (req.xhr) {
-            // For AJAX requests, send JSON
             return res.json({ 
                 products: processedProducts, 
                 totalPages, 
@@ -122,7 +126,6 @@ exports.getHome = async (req, res) => {
             });
         }
 
-        // For initial page load, render the full page
         res.render('user/home', {
             products: processedProducts,
             categories,
@@ -149,16 +152,27 @@ exports.getProduct = async (req, res) => {
     try {
         const { productId } = req.params;
 
-        // Fetch product details
-        const product = await Product.findById(productId);
-        if (!product) {
+        const product = await Product.findOne({ _id: productId, isBlocked: false })
+            .populate({
+                path: 'category',
+                match: { status: 'Active' }
+            });
+
+        if (!product || !product.category) {
             return res.status(404).render('user/product', { product: {}, message: 'Product not found' });
         }
 
-        // Fetch similar products
-        const similarProducts = await Product.find({ category: product.category }).limit(2);
+        const similarProducts = await Product.find({ 
+            category: product.category._id,
+            isBlocked: false,
+            _id: { $ne: product._id }
+        })
+        .populate({
+            path: 'category',
+            match: { status: 'Active' }
+        })
+        .limit(2);
 
-        // Function to calculate the best discount for a product
         const calculateBestDiscount = async (product) => {
             const productOffer = await Offer.findOne({
                 applicableProduct: product._id,
@@ -168,7 +182,7 @@ exports.getProduct = async (req, res) => {
             });
 
             const categoryOffer = await Offer.findOne({
-                applicableCategory: product.category,
+                applicableCategory: product.category._id,
                 startDate: { $lte: new Date() },
                 endDate: { $gte: new Date() },
                 isActive: true
@@ -192,7 +206,6 @@ exports.getProduct = async (req, res) => {
             return { bestDiscount, bestOfferSource };
         };
 
-        // Apply discount calculation to main product
         const { bestDiscount, bestOfferSource } = await calculateBestDiscount(product);
 
         let finalDiscountPrice = product.discountPrice;
@@ -206,11 +219,9 @@ exports.getProduct = async (req, res) => {
             };
         }
 
-        // Check if the product is new (e.g., added in the last 7 days)
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
         const isNew = product.createdAt > sevenDaysAgo;
 
-        // Apply discount calculation to similar products
         const processedSimilarProducts = await Promise.all(similarProducts.map(async (similarProduct) => {
             const { bestDiscount: similarBestDiscount, bestOfferSource: similarBestOfferSource } = await calculateBestDiscount(similarProduct);
             
@@ -243,7 +254,6 @@ exports.getProduct = async (req, res) => {
             }
         }
 
-        // Render product details page
         res.render('user/product', { 
             product: {
                 ...product.toObject(),
@@ -261,9 +271,6 @@ exports.getProduct = async (req, res) => {
         res.status(500).render('user/product', { product: {}, similarProducts: [], message: 'Internal server error' });
     }
 };
-
-
-
 
 exports.getProfile = async (req, res) => {
     try {
@@ -328,5 +335,5 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-
 module.exports = exports;
+

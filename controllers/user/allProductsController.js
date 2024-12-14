@@ -9,7 +9,9 @@ exports.getAllProducts = async (req, res) => {
         const limit = 9; // Number of products per page
 
         // Build the filter object
-        let filter = {};
+        let filter = {
+            isBlocked: false // Only show unblocked products
+        };
         if (search) filter.product_name = { $regex: search, $options: 'i' };
         if (category) filter.category = category;
         if (brand) filter['specifications.brand'] = brand;
@@ -28,24 +30,34 @@ exports.getAllProducts = async (req, res) => {
             rating: { rating: -1 },
         };
 
-        // Fetch products
+        // Fetch products with active categories
         const products = await Product.find(filter)
+            .populate({
+                path: 'category',
+                match: { status: 'Active' } // Only populate active categories
+            })
             .sort(sortOptions[sort] || sortOptions.newest)
             .skip((page - 1) * limit)
             .limit(limit);
 
-        const totalProducts = await Product.countDocuments(filter);
+        // Filter out products with inactive categories
+        const filteredProducts = products.filter(product => product.category);
+
+        const totalProducts = await Product.countDocuments({
+            ...filter,
+            category: { $in: await Category.find({ status: 'Active' }).distinct('_id') }
+        });
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Fetch categories and brands for filters
-        const categories = await Category.find();
-        const brands = await Product.distinct('specifications.brand');
+        // Fetch active categories and brands for filters
+        const categories = await Category.find({ status: 'Active' });
+        const brands = await Product.distinct('specifications.brand', { isBlocked: false });
 
         // Determine if a product is new (e.g., added in the last 7 days)
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
         // Process products with offers and new flag
-        const processedProducts = await Promise.all(products.map(async (product) => {
+        const processedProducts = await Promise.all(filteredProducts.map(async (product) => {
             // Convert to plain object to allow modifications
             const productObj = product.toObject();
             
@@ -61,7 +73,7 @@ exports.getAllProducts = async (req, res) => {
             });
 
             const categoryOffer = await Offer.findOne({
-                applicableCategory: product.category,
+                applicableCategory: product.category._id,
                 startDate: { $lte: new Date() },
                 endDate: { $gte: new Date() },
                 isActive: true
@@ -97,7 +109,7 @@ exports.getAllProducts = async (req, res) => {
 
             return {
                 ...productObj,
-                discountPrice:Math.floor(finalDiscountPrice),
+                discountPrice: Math.floor(finalDiscountPrice),
                 offer
             };
         }));
@@ -145,3 +157,4 @@ exports.getAllProducts = async (req, res) => {
 };
 
 module.exports = exports;
+

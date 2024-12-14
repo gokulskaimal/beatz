@@ -29,14 +29,8 @@ exports.getAllProducts = async (req, res) => {
       .limit(limit)
       .populate('category');
 
-    products = products.filter(product => {
-      return product.category.status === "Active" && !product.isBlocked;
-    });
 
-    const totalProducts = await Product.countDocuments({
-      'category.status': 'Active',
-      isBlocked: false
-    });
+    const totalProducts = await Product.countDocuments();
     const totalPages = Math.max(1, Math.ceil(totalProducts / limit));
 
     const categories = await Category.find();
@@ -210,6 +204,7 @@ exports.updateProduct = [
   }
 ];
 
+
 // Block a product
 exports.blockProduct = async (req, res) => {
   try {
@@ -237,15 +232,16 @@ exports.unblockProduct = async (req, res) => {
 };
 
 // Soft delete a product
-exports.softDeleteProduct = async (req, res) => {
+exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, { isBlocked: true }, { new: true });
+    const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    res.json({ success: true, message: 'Product soft deleted successfully' });
+    res.json({ success: true, message: 'Product deleted successfully' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Error soft deleting product', error: err.message });
+    res.status(500).json({ success: false, message: 'Error deleting product', error: err.message });
   }
 };
+
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders</title>
+    <title>My Orders - Beatz Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -58,9 +58,9 @@
                     </div>
                     <!-- Pagination -->
                     <div class="mt-6 flex justify-center">
-                        <button id="prevPage" class="bg-blue-500 text-black  font-semibold px-4 py-2 rounded mr-2">&lt; Previous</button>
+                        <button id="prevPage" class="bg-blue-800 text-black  font-semibold px-4 py-2 rounded mr-2">&lt; Previous</button>
                         <span id="currentPage" class="px-4 py-2">Page 1</span>
-                        <button id="nextPage" class="bg-blue-500 text-black  font-semibold px-4 py-2 rounded ml-2">Next &gt;</button>
+                        <button id="nextPage" class="bg-blue-800 text-black  font-semibold px-4 py-2 rounded ml-2">Next &gt;</button>
                     </div>
                 <% } %>
             </div>
@@ -126,16 +126,16 @@
                                     <div class="flex-grow">
                                         <h3 class="font-semibold">${item.productName}</h3>
                                         <p class="text-sm text-gray-300">Quantity: ${item.quantity}</p>
-                                        <p class="text-sm text-gray-300">Price: ₹${item.price.toFixed(2)}</p>
+                                        <p class="text-sm text-gray-300">Price: <span class="font-semibold text-red-500">₹</span>${item.price.toFixed(2)}</p>
                                         <p class="text-sm text-gray-300">Status: ${item.status}</p>
                                     </div>
-                                    <p class="text-sm font-semibold">₹${(item.quantity * item.discountPrice).toFixed(2)}</p>
+                                    <p class="text-sm font-semibold"><span class="font-bold text-red-500" >₹</span>${(item.quantity * item.discountPrice).toFixed(2)}</p>
                                     ${item.status === 'Pending' || item.status === 'Processing' ?
-                                        `<button onclick="cancelItem('${order._id}', '${item._id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm">
+                                        `<button onclick="cancelItem('${order._id}', '${item._id}')" class="bg-red-600 hover:bg-red-700 text-black font-semibold px-2 py-1 rounded text-sm">
                                             Cancel
                                         </button>` :
                                         item.status === 'Delivered' ?
-                                        `<button onclick="requestReturn('${order._id}', '${item._id}')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded text-sm">
+                                        `<button onclick="requestReturn('${order._id}', '${item._id}')" class="bg-yellow-600 hover:bg-yellow-700 text-black font-semibold px-2 py-1 rounded text-sm">
                                             Return
                                         </button>` :
                                         ''
@@ -146,19 +146,19 @@
                         <div class="flex justify-between items-center mt-4">
                             <button 
                                 onclick="viewDetails('${order._id}')" 
-                                class="bg-blue-500 text-black  font-semibold px-3 py-2 rounded hover:bg-blue-600">
+                                class="bg-blue-700 text-black  font-semibold px-3 py-2 rounded hover:bg-blue-800">
                                 View Details
                             </button>
                             ${order.payment.paymentStatus === 'Failed' ?
                                 `<button 
                                     onclick="resumePayment('${order._id}')" 
-                                    class="bg-orange-500 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-600">
+                                    class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                                     RePay
                                 </button>` : ''
                             }
                             <button 
                                 onclick="downloadInvoice('${order._id}')" 
-                                class="bg-green-500 text-black font-semibold px-3 py-2 rounded hover:bg-green-600">
+                                class="bg-green-700 text-black font-semibold px-3 py-2 rounded hover:bg-green-800">
                                 Download Invoice
                             </button>
                         </div>
@@ -216,7 +216,7 @@
                                     <div>
                                         <p class="font-semibold">${item.productName}</p>
                                         <p>Quantity: ${item.quantity}</p>
-                                        <p>Price: ₹${item.discountPrice.toFixed(2)}</p>
+                                        <p>Price: <span class="font-bold text-red-500" >₹</span>${item.discountPrice.toFixed(2)}</p>
                                         <p>Status: ${item.status}</p>
                                     </div>
                                 </div>
@@ -225,9 +225,9 @@
                         <h3 class="font-bold text-lg mt-4 mb-2 text-gold">Payment Details</h3>
                         <p><strong>Payment Method:</strong> ${data.order.payment.paymentMethod}</p>
                         <p><strong>Payment Status:</strong> ${data.order.payment.paymentStatus}</p>
-                        <p><strong>Subtotal:</strong> ₹${data.order.payment.totalAmount.toFixed(2)}</p>
-                        <p><strong>Discount:</strong> ₹${data.order.payment.discount.toFixed(2)}</p>
-                        <p><strong>Total:</strong> ₹${data.order.payment.discountPrice.toFixed(2)}</p>
+                        <p><strong>Subtotal:</strong> <span class="font-bold text-red-500" >₹</span>${data.order.payment.totalAmount.toFixed(2)}</p>
+                        <p><strong>Discount:</strong> <span class="font-bold text-red-500" >₹</span>${data.order.payment.discount.toFixed(2)}</p>
+                        <p><strong>Total:</strong> <span class="font-bold text-red-500" >₹</span>${data.order.payment.discountPrice.toFixed(2)}</p>
                     `;
                     document.getElementById('detailsModal').classList.remove('hidden');
                 } else {

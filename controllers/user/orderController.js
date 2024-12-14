@@ -27,12 +27,20 @@ exports.placeOrder = async (req, res) => {
             return res.status(404).json({ message: "Address not found" });
         }
 
-        const cart = await Cart.findOne({ userId }).populate('items.product');
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.product',
+            match: { isBlocked: false },
+            populate: {
+                path: 'category',
+                match: { status: 'Active' }
+            }
+        });
+
         if (!cart || cart.items.length === 0) {
             return res.status(400).json({ message: "Your cart is empty" });
         }
 
-        const items = cart.items.filter(item => item.product && !item.product.isBlocked);
+        const items = cart.items.filter(item => item.product && item.product.category);
         let totalAmount = 0;
         let discountPrice = 0;
 
@@ -93,7 +101,6 @@ exports.placeOrder = async (req, res) => {
             }
         }
 
-        // Check if COD is allowed for orders above Rs 1000
         if (paymentMethod === 'Cash On Delivery' && discountPrice > 1000) {
             return res.status(400).json({ message: "Cash On Delivery is not available for orders above Rs 1000" });
         }

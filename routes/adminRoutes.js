@@ -45,7 +45,7 @@ router.get('/products/:id',adminAuth.checkSession, productController.getProductB
 // router.put('/products/:id', productController.updateProduct); // Update a product
 router.put('/products/block/:id',adminAuth.checkSession, productController.blockProduct); 
 router.put('/products/unblock/:id',adminAuth.checkSession, productController.unblockProduct); 
-router.delete('/products/:id',adminAuth.checkSession, productController.softDeleteProduct);
+router.delete('/products/:id',adminAuth.checkSession, productController.deleteProduct);
 router.post('/products',adminAuth.checkSession,  productController.addProduct);
 router.put('/products/:id',adminAuth.checkSession,  productController.updateProduct);  
 
