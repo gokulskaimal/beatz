@@ -46,7 +46,7 @@
       <div class="flex justify-between items-center mb-8">
         <!-- Trigger Add Modal -->
         <button onclick="toggleModal('add')"
-          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">
+          class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-md transition-colors duration-200">
           Add new Product
         </button>
         <div class="relative">
@@ -62,13 +62,13 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-800">
-              <th class="text-left p-4 text-orange-500">Sl. No</th>
-              <th class="text-left p-4 text-orange-500">Product</th>
-              <th class="text-left p-4 text-orange-500">Price</th>
-              <th class="text-left p-4 text-orange-500">Stock</th>
-              <th class="text-left p-4 text-orange-500">Category</th>
-              <th class="text-left p-4 text-orange-500">Status</th>
-              <th class="text-left p-4 text-orange-500">Action</th>
+              <th class="text-left p-4 text-yellow-500">Sl. No</th>
+              <th class="text-left p-4 text-yellow-500">Product</th>
+              <th class="text-left p-4 text-yellow-500">Price</th>
+              <th class="text-left p-4 text-yellow-500">Stock</th>
+              <th class="text-left p-4 text-yellow-500">Category</th>
+              <th class="text-left p-4 text-yellow-500">Status</th>
+              <th class="text-left p-4 text-yellow-500">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -89,12 +89,12 @@
                 <td class="p-4">
                   <div class="flex gap-2">
                     <button onclick="editProduct('<%= JSON.stringify(product) %>')"
-                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      class="bg-green-600 hover:bg-green-700 text-black  font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Edit
                     </button>
                     <button onclick="deleteProduct('<%= product._id %>')"
-                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
-                      Remove
+                      class="bg-red-600 hover:bg-red-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      Delete
                     </button>
                     <button onclick="toggleProductStatus('<%= product._id %>', <%= product.isBlocked %>)"
                       class="<%= product.isBlocked ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-orange-600 hover:bg-orange-700' %> text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
@@ -226,7 +226,7 @@
       <!-- Submit Button -->
       <div class="mt-4 flex justify-between gap-2">
         <button type="button" onclick="toggleModal('add')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Add Product</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Add Product</button>
       </div>
     </form>
   </div>
@@ -336,7 +336,7 @@
       <!-- Submit Button -->
       <div class="mt-4 flex justify-between gap-2">
         <button type="button" onclick="toggleModal('edit')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Update Product</button>
+        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Update Product</button>
       </div>
     </form>
   </div>

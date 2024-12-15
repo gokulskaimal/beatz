@@ -42,7 +42,7 @@
         <!-- Main Content -->
         <div class="flex-1 p-8 bg-darker overflow-y-auto">
             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-2xl font-bold text-orange-500">Sales Report</h1>
+                <h1 class="text-2xl font-bold text-yellow-500">Sales Report</h1>
                 <div class="flex space-x-4">
                     <select id="dateRange" class="bg-[#111] text-white px-4 py-2 rounded-md">
                         <option value="day">Today</option>
@@ -53,30 +53,30 @@
                     </select>
                     <input type="date" id="startDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
                     <input type="date" id="endDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
-                    <button id="generateReport" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md">Generate Report</button>
+                    <button id="generateReport" class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">Generate Report</button>
                 </div>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <div class="bg-[#111] p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-orange-500">Total Sales</h3>
-                    <p class="text-2xl font-bold" id="totalSales">₹<%= summary.totalSales.toFixed(2) %></p>
+                    <h3 class="text-lg font-bold text-yellow-500">Total Sales</h3>
+                    <p class="text-2xl font-bold" id="totalSales"><span class="text-red-500 font-bold">₹</span><%= summary.totalSales.toFixed(2) %></p>
                 </div>
                 <div class="bg-[#111] p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-orange-500">Total Orders</h3>
+                    <h3 class="text-lg font-bold text-yellow-500">Total Orders</h3>
                     <p class="text-2xl font-bold" id="totalOrders"><%= summary.totalOrders %></p>
                 </div>
                 <div class="bg-[#111] p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-orange-500">Total Discount</h3>
+                    <h3 class="text-lg font-bold text-yellow-500">Total Discount</h3>
                     <p class="text-2xl font-bold" id="totalDiscount">₹<%= summary.totalDiscount.toFixed(2) %></p>
                 </div>
                 <div class="bg-[#111] p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-orange-500">Total Coupon</h3>
+                    <h3 class="text-lg font-bold text-yellow-500">Total Coupon</h3>
                     <p class="text-2xl font-bold" id="totalCouponDiscount">₹<%= summary.totalCouponDiscount.toFixed(2) %></p>
                 </div>
                 <div class="bg-[#111] p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-orange-500">Net Amount</h3>
+                    <h3 class="text-lg font-bols text-yellow-500">Net Amount</h3>
                     <p class="text-2xl font-bold" id="netAmount">₹<%= summary.netAmount.toFixed(2) %></p>
                 </div>
             </div>
@@ -88,8 +88,8 @@
 
             <!-- Download Buttons -->
             <div class="flex justify-end space-x-4 mb-8">
-                <button id="downloadPDF" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">Download PDF</button>
-                <button id="downloadExcel" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Download Excel</button>
+                <button id="downloadPDF" class="bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-md">Download PDF</button>
+                <button id="downloadExcel" class="bg-blue-500 hover:bg-blue-600 text-black  font-semibold px-4 py-2 rounded-md">Download Excel</button>
             </div>
 
             <!-- Sales Table -->
@@ -97,15 +97,15 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-gray-800">
-                            <th class="text-left p-4 text-orange-500">Date</th>
-                            <th class="text-left p-4 text-orange-500">Order ID</th>
-                            <th class="text-left p-4 text-orange-500">Customer Name</th>
-                            <th class="text-left p-4 text-orange-500">Total Amount</th>
-                            <th class="text-left p-4 text-orange-500">Discount</th>
-                            <th class="text-left p-4 text-orange-500">Coupon Discount</th>
-                            <th class="text-left p-4 text-orange-500">Net Amount</th>
-                            <th class="text-left p-4 text-orange-500">Payment Method</th>
-                            <th class="text-left p-4 text-orange-500">Payment Status</th>
+                            <th class="text-left p-4 text-yellow-500">Date</th>
+                            <th class="text-left p-4 text-yellow-500">Order ID</th>
+                            <th class="text-left p-4 text-yellow-500">Customer Name</th>
+                            <th class="text-left p-4 text-yellow-500">Total Amount</th>
+                            <th class="text-left p-4 text-yellow-500">Discount</th>
+                            <th class="text-left p-4 text-yellow-500">Coupon Discount</th>
+                            <th class="text-left p-4 text-yellow-500">Net Amount</th>
+                            <th class="text-left p-4 text-yellow-500">Payment Method</th>
+                            <th class="text-left p-4 text-yellow-500">Payment Status</th>
                         </tr>
                     </thead>
                     <tbody id="salesTableBody">
@@ -134,8 +134,8 @@
                     <span id="paginationInfo" class="text-sm text-gray-400"></span>
                 </div>
                 <div class="space-x-2">
-                    <button id="prevPage" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                    <button id="nextPage" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                    <button id="prevPage" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <button id="nextPage" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
                 </div>
             </div>
         </div>

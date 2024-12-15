@@ -44,7 +44,7 @@
       <div class="flex justify-between items-center mb-8">
         <!-- Trigger Add Modal -->
         <button onclick="toggleModal('add')"
-          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">
+          class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-md transition-colors duration-200">
           Add new Coupon
         </button>
         <div class="relative">
@@ -59,19 +59,23 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-800">
-              <th class="text-left p-4 text-orange-500">Code</th>
-              <th class="text-left p-4 text-orange-500">Type</th>
-              <th class="text-left p-4 text-orange-500">Value</th>
-              <th class="text-left p-4 text-orange-500">Min Purchase</th>
-              <th class="text-left p-4 text-orange-500">Expiry Date</th>
-              <th class="text-left p-4 text-orange-500">Usage Limit</th>
-              <th class="text-left p-4 text-orange-500">Status</th>
-              <th class="text-left p-4 text-orange-500">Action</th>
+              <th class="text-left p-4 text-yellow-500 ">Sl. No</th>
+              <th class="text-left p-4 text-yellow-500">Code</th>
+              <th class="text-left p-4 text-yellow-500">Type</th>
+              <th class="text-left p-4 text-yellow-500">Value</th>
+              <th class="text-left p-4 text-yellow-500">Min Purchase</th>
+              <th class="text-left p-4 text-yellow-500">Expiry Date</th>
+              <th class="text-left p-4 text-yellow-500">Usage Limit</th>
+              <th class="text-left p-4 text-yellow-500">Status</th>
+              <th class="text-left p-4 text-yellow-500">Action</th>
             </tr>
           </thead>
           <tbody id="couponsTableBody">
-            <% coupons.forEach((coupon) => { %>
+            <% coupons.forEach((coupon,index) => { %>
               <tr class="border-b border-gray-800">
+                <td class="p-4">
+                  <%= index + 1 %>
+              </td>
                 <td class="p-4"><%= coupon.code %></td>
                 <td class="p-4"><%= coupon.couponType %></td>
                 <td class="p-4"><%= coupon.couponValue %><%= coupon.couponType === 'Percentage' ? '%' : '₹' %></td>
@@ -86,12 +90,12 @@
                 <td class="p-4">
                   <div class="flex gap-2">
                     <button onclick="editCoupon('<%= JSON.stringify(coupon) %>')"
-                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      class="bg-green-600 hover:bg-green-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Edit
                     </button>
                     <button onclick="deleteCoupon('<%= coupon._id %>')"
-                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
-                      Remove
+                      class="bg-red-600 hover:bg-red-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      Delete
                     </button>
                   </div>
                 </td>
@@ -161,7 +165,7 @@
         </div>
         <div class="mt-4 flex justify-between gap-2">
           <button type="button" onclick="toggleModal('add')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Add Coupon</button>
+          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Add Coupon</button>
         </div>
       </form>
     </div>
@@ -213,7 +217,7 @@
         </div>
         <div class="mt-4 flex justify-between gap-2">
           <button type="button" onclick="toggleModal('edit')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Update Coupon</button>
+          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Update Coupon</button>
         </div>
       </form>
     </div>

@@ -53,11 +53,12 @@
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-800">
-              <th class="text-left p-4 text-orange-500">Sl. No.</th>
-              <th class="text-left p-4 text-orange-500">Name</th>
-              <th class="text-left p-4 text-orange-500">Email</th>
-              <th class="text-left p-4 text-orange-500">Mobile</th>
-              <th class="text-left p-4 text-orange-500">Status</th>
+              <th class="text-left p-4 text-yellow-500">Sl. No.</th>
+              <th class="text-left p-4 text-yellow-500">Name</th>
+              <th class="text-left p-4 text-yellow-500">Email</th>
+              <th class="text-left p-4 text-yellow-500">Mobile</th>
+              <th class="text-left p-4 text-yellow-500">Status</th>
+              <th class="text-left p-4 text-yellow-500">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -77,15 +78,15 @@
                 </td>
                 <td class="p-4">
                   <% if (user.isBlocked) { %>
-                    <span class="bg-red-500 text-black px-2 py-1 rounded">Blocked</span>
+                    <span class="text-red-500  font-semibold px-2 py-1 rounded">Blocked</span>
                     <% } else { %>
-                      <span class="bg-green-500 text-black px-2 py-1 rounded">Active</span>
+                      <span class=" text-green-500  font-semibold px-2 py-1 rounded">Active</span>
                       <% } %>
                 </td>
                 <td class="p-4">
                   <div class="flex gap-2">
                     <button onclick="toggleBlock('<%= user._id %>', '<%= user.isBlocked ? 'Unblock' : 'Block' %>')"
-                      class="<%= user.isBlocked ? 'bg-green-500' : 'bg-red-500' %> text-black px-4 py-1 rounded">
+                      class="<%= user.isBlocked ? 'bg-green-700' : 'bg-red-700' %> text-black font-semibold px-4 py-1 rounded">
                       <%= user.isBlocked ? 'Unblock' : 'Block' %>
                     </button>
                   </div>

@@ -16,7 +16,11 @@ router.post('/login', adminController.postLogin);
 router.get('/logout', adminAuth.checkSession, adminController.logout);
  
 // Dashboard Route
-router.get('/dashboard', adminAuth.checkSession, adminController.getDashboard);
+router.get('/dashboard', adminController.getDashboard);
+router.get('/dashboard/sales', adminController.getSalesData);
+router.get('/dashboard/best-selling/:type', adminController.getBestSelling);
+
+
 
 // User Management Routes
 router.get('/users', adminAuth.checkSession, adminController.getUsers);

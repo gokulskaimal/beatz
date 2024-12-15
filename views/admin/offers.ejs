@@ -38,7 +38,7 @@
         <div class="flex-1 p-8 bg-darker overflow-y-auto">
             <div class="flex justify-between items-center mb-8">
                 <button
-                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-md transition-colors duration-200"
                     onclick="showAddOfferModal()">
                     Add New Offer
                 </button>
@@ -54,15 +54,15 @@
                 <table class="w-full">
                     <thead>
                         <tr class="border-b border-gray-800">
-                            <th class="text-left p-4 text-orange-500">Sl. No.</th>
-                            <th class="text-left p-4 text-orange-500">Title</th>
-                            <th class="text-left p-4 text-orange-500">Discount</th>
-                            <th class="text-left p-4 text-orange-500">Type</th>
-                            <th class="text-left p-4 text-orange-500">Applicable Item</th>
-                            <th class="text-left p-4 text-orange-500">Start Date</th>
-                            <th class="text-left p-4 text-orange-500">End Date</th>
-                            <th class="text-left p-4 text-orange-500">Status</th>
-                            <th class="text-left p-4 text-orange-500">Actions</th>
+                            <th class="text-left p-4 text-yellow-500">Sl. No.</th>
+                            <th class="text-left p-4 text-yellow-500">Title</th>
+                            <th class="text-left p-4 text-yellow-500">Discount</th>
+                            <th class="text-left p-4 text-yellow-500">Type</th>
+                            <th class="text-left p-4 text-yellow-500">Applicable Item</th>
+                            <th class="text-left p-4 text-yellow-500">Start Date</th>
+                            <th class="text-left p-4 text-yellow-500">End Date</th>
+                            <th class="text-left p-4 text-yellow-500">Status</th>
+                            <th class="text-left p-4 text-yellow-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="offersTableBody">
@@ -83,11 +83,11 @@
                                 <td class="p-4">
                                     <div class="flex gap-2">
                                         <button onclick="showEditOfferModal('<%= JSON.stringify(offer) %>')"
-                                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                                            class="bg-green-600 hover:bg-green-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
                                             Edit
                                         </button>
                                         <button onclick="deleteOffer('<%= offer._id %>')"
-                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                                            class="bg-red-600 hover:bg-red-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
                                             Delete
                                         </button>
                                     </div>
@@ -162,7 +162,7 @@
                         class="w-full bg-[#222] text-white px-3 py-2 rounded-md focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
                 <div class="flex justify-between items-center">
-                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md">Add Offer</button>
+                    <button type="submit" class="bg-orange-500 text-black font-semibold px-4 py-2 rounded-md">Add Offer</button>
                     <button type="button" onclick="closeAddOfferModal()" class="text-gray-400">Close</button>
                 </div>
             </form>
@@ -219,7 +219,7 @@
                     </select>
                 </div>
                 <div class="flex justify-between items-center">
-                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md">Save Changes</button>
+                    <button type="submit" class="bg-orange-500 text-black font-semibold px-4 py-2 rounded-md">Save Changes</button>
                     <button type="button" onclick="closeEditOfferModal()" class="text-gray-400">Close</button>
                 </div>
             </form>
