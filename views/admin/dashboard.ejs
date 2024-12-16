@@ -44,7 +44,7 @@
 
 <body class="min-h-screen bg-background text-white font-sans">
   <div class="flex h-screen">
-    <!-- Sidebar (unchanged) -->
+    <!-- Sidebar -->
     <div class="w-64 bg-[#111] ">
       <%- include('../partials/adminHeader') %>
     </div>
@@ -56,13 +56,12 @@
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-xl text-yellow-500 font-bold">Dashboard</h2>
           <div class="flex items-center gap-4">
-            <select id="yearFilter" class="bg-surface text-white px-4 py-2 rounded-md">
-              <option value="2024">Year: 2024</option>
-              <!-- <option value="2023">Year: 2023</option> -->
+            <select id="dashboardFilter" class="bg-surface text-white px-4 py-2 rounded-md">
+              <option value="daily" <%= filter === 'daily' ? 'selected' : '' %>>Daily</option>
+              <option value="weekly" <%= filter === 'weekly' ? 'selected' : '' %>>Weekly</option>
+              <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
+              <option value="yearly" <%= filter === 'yearly' ? 'selected' : '' %>>Yearly</option>
             </select>
-            <!-- <button class="bg-surface px-4 py-2 rounded-md hover:bg-surface-light">
-              Download
-            </button> -->
           </div>
         </div>
 
@@ -140,14 +139,6 @@
       <div class="gradient-card p-6 rounded-xl mb-8">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-xl text-yellow-500 text font-bold">Orders Update</h2>
-          <div class="flex items-center gap-4">
-            <select id="chartFilter" class="bg-surface text-white px-4 py-2 rounded-md">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
         </div>
         <div class="relative h-80">
           <canvas id="ordersChart"></canvas>
@@ -158,7 +149,13 @@
       <div class="gradient-card p-6 rounded-xl mb-8">
         <h2 class="text-xl font-bold text-yellow-500 mb-4">Best Selling Products (Top 10)</h2>
         <div id="bestSellingProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <!-- Product items will be inserted here -->
+          <% bestSellingProducts.forEach(product => { %>
+            <div class="bg-surface p-4 rounded-lg shadow transition-transform duration-200 hover:scale-105">
+              <img src="<%= product.image %>" alt="<%= product.product_name %>" class="w-full h-32 object-cover rounded-md mb-2">
+              <h3 class="font-semibold text-neon mb-2"><%= product.product_name %></h3>
+              <p class="text-sm">Sales: <%= product.sales %></p>
+            </div>
+          <% }); %>
         </div>
       </div>
 
@@ -167,13 +164,27 @@
         <div class="gradient-card p-6 rounded-xl">
           <h2 class="text-xl text-yellow-500 text font-bold mb-4">Best Selling Categories (Top 10)</h2>
           <div id="bestSellingCategories">
-            <!-- Category items will be inserted here -->
+            <ul class="space-y-2">
+              <% bestSellingCategories.forEach(category => { %>
+                <li class="flex justify-between items-center">
+                  <span class="text-neon"><%= category.name %></span>
+                  <span class="bg-surface px-2 py-1 rounded"><%= category.sales %></span>
+                </li>
+              <% }); %>
+            </ul>
           </div>
         </div>
         <div class="gradient-card p-6 rounded-xl">
           <h2 class="text-xl text-yellow-500 font-bold mb-4">Best Selling Brands (Top 10)</h2>
           <div id="bestSellingBrands">
-            <!-- Brand items will be inserted here -->
+            <ul class="space-y-2">
+              <% bestSellingBrands.forEach(brand => { %>
+                <li class="flex justify-between items-center">
+                  <span class="text-neon"><%= brand.name %></span>
+                  <span class="bg-surface px-2 py-1 rounded"><%= brand.sales %></span>
+                </li>
+              <% }); %>
+            </ul>
           </div>
         </div>
       </div>
@@ -187,17 +198,6 @@
 
     // Chart initialization
     let ordersChart;
-
-    // Fetch and render sales data
-    async function fetchSalesData(filter) {
-      try {
-        const response = await fetch(`/admin/dashboard/sales?filter=${filter}`);
-        const data = await response.json();
-        renderOrdersChart(data);
-      } catch (error) {
-        console.error('Error fetching sales data:', error);
-      }
-    }
 
     // Render orders chart
     function renderOrdersChart(data) {
@@ -274,61 +274,22 @@
                 }
               }
             }
-          },
-          interaction: {
-            intersect: false,mode: 'index'
+          },interaction: {
+            intersect: false,
+            mode: 'index'
           }
         }
       });
     }
 
-    // Fetch and render best selling items
-    async function fetchBestSelling(type) {
-      try {
-        const response = await fetch(`/admin/dashboard/best-selling/${type}`);
-        const data = await response.json();
-        renderBestSelling(type, data);
-      } catch (error) {
-        console.error(`Error fetching best selling ${type}:`, error);
-      }
-    }
-
-    // Render best selling items
-    function renderBestSelling(type, data) {
-      const container = qs(`#bestSelling${type.charAt(0).toUpperCase() + type.slice(1)}`);
-      if (type === 'products') {
-        container.innerHTML = data.map(item => `
-          <div class="bg-surface p-4 rounded-lg shadow transition-transform duration-200 hover:scale-105">
-            <img src="${item.image}" alt="${item.product_name}" class="w-full h-32 object-cover rounded-md mb-2">
-            <h3 class="font-semibold text-neon mb-2">${item.product_name}</h3>
-            <p class="text-sm">Sales: ${item.sales}</p>
-          </div>
-        `).join('');
-      } else {
-        container.innerHTML = `
-          <ul class="space-y-2">
-            ${data.map(item => `
-              <li class="flex justify-between items-center">
-                <span class="text-neon">${item.name}</span>
-                <span class="bg-surface px-2 py-1 rounded">${item.sales}</span>
-              </li>
-            `).join('')}
-          </ul>
-        `;
-      }
-    }
-
-    // Event Listeners
-    qs('#chartFilter').addEventListener('change', function() {
-      fetchSalesData(this.value);
-    });
-
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', () => {
-      fetchSalesData('daily');
-      fetchBestSelling('products');
-      fetchBestSelling('categories');
-      fetchBestSelling('brands');
+      renderOrdersChart(<%- JSON.stringify(salesData) %>);
+
+      // Add event listener for filter change
+      qs('#dashboardFilter').addEventListener('change', function() {
+        window.location.href = `/admin/dashboard?filter=${this.value}`;
+      });
     });
   </script>
 </body>

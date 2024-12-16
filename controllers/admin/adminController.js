@@ -4,6 +4,7 @@ const User = require('../../models/userModel');
 const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
+const { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } = require('date-fns');
 
 exports.getLoginPage = (req, res) => {
   res.render('admin/login', { error: null });
@@ -25,77 +26,227 @@ exports.postLogin = async (req, res) => {
   }
 };
 
-
-
-
+const getDateRange = (filter) => {
+  const now = new Date();
+  switch (filter) {
+    case 'daily':
+      return { start: startOfDay(now), end: endOfDay(now) };
+    case 'weekly':
+      return { start: startOfWeek(now), end: endOfWeek(now) };
+    case 'monthly':
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+    case 'yearly':
+      return { start: startOfYear(now), end: endOfYear(now) };
+    default:
+      return { start: subDays(now, 30), end: now };
+  }
+};
 
 exports.getDashboard = async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const totalOrders = await Order.countDocuments();
-    const totalSales = await Order.aggregate([
-      { $group: { _id: null, total: { $sum: "$payment.totalAmount" } } }
+    const filter = req.query.filter || 'monthly'; // Default to monthly if no filter provided
+    const dateRange = getDateRange(filter);
+
+    const [dashboardData, salesData, bestSellingProducts, bestSellingCategories, bestSellingBrands] = await Promise.all([
+      getDashboardData(dateRange),
+      getSalesData(dateRange),
+      getBestSelling('products', dateRange),
+      getBestSelling('categories', dateRange),
+      getBestSelling('brands', dateRange)
     ]);
-    const totalCustomers = await User.countDocuments({ role: 'customer' });
 
-    const dashboardData = {
-      totalUsers,
-      totalOrders,
-      totalSales: totalSales[0]?.total || 0,
-      totalCustomers
-    };
-
-    res.render('admin/dashboard', { dashboardData });
+    res.render('admin/dashboard', {
+      dashboardData,
+      salesData,
+      bestSellingProducts,
+      bestSellingCategories,
+      bestSellingBrands,
+      filter
+    });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     res.status(500).render('error', { message: 'Error fetching dashboard data' });
   }
 };
 
+async function getDashboardData(dateRange) {
+  const [totalUsers, totalOrders, totalSales, totalCustomers] = await Promise.all([
+    User.countDocuments(),
+    Order.countDocuments({ 'payment.paymentStatus': 'Completed', orderDate: { $gte: dateRange.start, $lte: dateRange.end } }),
+    Order.aggregate([
+      { 
+        $match: { 
+          'payment.paymentStatus': 'Completed',
+          orderDate: { $gte: dateRange.start, $lte: dateRange.end }
+        }
+      },
+      { $group: { _id: null, total: { $sum: "$payment.totalAmount" } } }
+    ]),
+    User.countDocuments({ role: 'customer' })
+  ]);
+
+  return {
+    totalUsers,
+    totalOrders,
+    totalSales: totalSales[0]?.total || 0,
+    totalCustomers
+  };
+}
+
+async function getSalesData(dateRange) {
+  return Order.aggregate([
+    { 
+      $match: { 
+        'payment.paymentStatus': 'Completed',
+        orderDate: { $gte: dateRange.start, $lte: dateRange.end }
+      }
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } },
+        orders: { $sum: 1 },
+        amount: { $sum: "$payment.totalAmount" }
+      }
+    },
+    { $sort: { _id: 1 } },
+    { $project: { date: "$_id", orders: 1, amount: 1, _id: 0 } }
+  ]);
+}
+
+async function getBestSelling(type, dateRange) {
+  let pipeline = [
+    { 
+      $match: { 
+        'payment.paymentStatus': 'Completed',
+        orderDate: { $gte: dateRange.start, $lte: dateRange.end }
+      }
+    },
+    { $unwind: "$items" },
+    {
+      $group: {
+        _id: "$items.productId",
+        sales: { $sum: "$items.quantity" }
+      }
+    },
+    { $sort: { sales: -1 } },
+    { $limit: 10 }
+  ];
+
+  if (type === 'categories' || type === 'brands') {
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: "$product" }
+    );
+
+    if (type === 'categories') {
+      pipeline.push(
+        {
+          $group: {
+            _id: "$product.category",
+            sales: { $sum: "$sales" }
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        { $unwind: "$category" },
+        {
+          $project: {
+            name: "$category.name",
+            sales: 1
+          }
+        }
+      );
+    } else {
+      pipeline.push(
+        {
+          $group: {
+            _id: "$product.specifications.brand",
+            sales: { $sum: "$sales" }
+          }
+        },
+        {
+          $project: {
+            name: "$_id",
+            sales: 1
+          }
+        }
+      );
+    }
+  } else {
+    pipeline.push(
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          product_name: "$product.product_name",
+          image: { $arrayElemAt: ["$product.image", 0] },
+          sales: 1
+        }
+      }
+    );
+  }
+
+  return Order.aggregate(pipeline);
+}
+
 exports.getSalesData = async (req, res) => {
   try {
     const { filter } = req.query;
-    let matchStage = {};
+    let matchStage = { 'payment.paymentStatus': 'Completed' };
     let groupId = {};
 
     const now = new Date();
 
     switch (filter) {
       case 'daily':
-        matchStage = {
-          orderDate: {
-            $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-            $lt: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-          }
+        matchStage.orderDate = {
+          $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          $lt: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
         };
         groupId = { $dateToString: { format: "%Y-%m-%d %H:00", date: "$orderDate" } };
         break;
       case 'weekly':
         const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-        matchStage = { orderDate: { $gte: oneWeekAgo } };
+        matchStage.orderDate = { $gte: oneWeekAgo };
         groupId = { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } };
         break;
       case 'monthly':
-        matchStage = {
-          orderDate: {
-            $gte: new Date(now.getFullYear(), now.getMonth(), 1),
-            $lt: new Date(now.getFullYear(), now.getMonth() + 1, 1)
-          }
+        matchStage.orderDate = {
+          $gte: new Date(now.getFullYear(), now.getMonth(), 1),
+          $lt: new Date(now.getFullYear(), now.getMonth() + 1, 1)
         };
         groupId = { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } };
         break;
       case 'yearly':
-        matchStage = {
-          orderDate: {
-            $gte: new Date(now.getFullYear(), 0, 1),
-            $lt: new Date(now.getFullYear() + 1, 0, 1)
-          }
+        matchStage.orderDate = {
+          $gte: new Date(now.getFullYear(), 0, 1),
+          $lt: new Date(now.getFullYear() + 1, 0, 1)
         };
         groupId = { $dateToString: { format: "%Y-%m", date: "$orderDate" } };
         break;
       default:
         const thirtyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
-        matchStage = { orderDate: { $gte: thirtyDaysAgo } };
+        matchStage.orderDate = { $gte: thirtyDaysAgo };
         groupId = { $dateToString: { format: "%Y-%m-%d", date: "$orderDate" } };
     }
 
@@ -123,6 +274,7 @@ exports.getBestSelling = async (req, res) => {
   try {
     const { type } = req.params;
     let pipeline = [
+      { $match: { 'payment.paymentStatus': 'Completed' } },
       { $unwind: "$items" },
       {
         $group: {
@@ -216,12 +368,6 @@ exports.getBestSelling = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
 exports.logout = (req, res) => {
   if (req.session.admin) {
     delete req.session.admin;
@@ -231,7 +377,6 @@ exports.logout = (req, res) => {
   }
 };
 
-// Get Users with Pagination and Search
 exports.getUsers = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
@@ -259,7 +404,6 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// Block User
 exports.blockUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -269,7 +413,6 @@ exports.blockUser = async (req, res) => {
     user.isBlocked = true;
     await user.save();
 
-    // Clear the user's session if they are currently logged in
     if (req.session.users && req.session.users[user._id]) {
       delete req.session.users[user._id];
     }
@@ -281,7 +424,6 @@ exports.blockUser = async (req, res) => {
   }
 };
 
-// Unblock User
 exports.unblockUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -296,4 +438,32 @@ exports.unblockUser = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error unblocking user' });
   }
 };
+
+exports.getDashboardData = async (req, res) => {
+  try {
+    const filter = req.query.filter || 'monthly';
+    const dateRange = getDateRange(filter);
+
+    const [dashboardData, salesData, bestSellingProducts, bestSellingCategories, bestSellingBrands] = await Promise.all([
+      getDashboardData(dateRange),
+      getSalesData(dateRange),
+      getBestSelling('products', dateRange),
+      getBestSelling('categories', dateRange),
+      getBestSelling('brands', dateRange)
+    ]);
+
+    res.json({
+      dashboardData,
+      salesData,
+      bestSellingProducts,
+      bestSellingCategories,
+      bestSellingBrands
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard data' });
+  }
+};
+
+module.exports = exports;
 
