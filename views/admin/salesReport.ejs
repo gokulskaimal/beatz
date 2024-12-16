@@ -82,9 +82,9 @@
             </div>
 
             <!-- Sales Chart -->
-            <div class="bg-[#111] p-4 rounded-lg mb-8">
+            <!-- <div class="bg-[#111] p-4 rounded-lg mb-8">
                 <canvas id="salesChart"></canvas>
-            </div>
+            </div> -->
 
             <!-- Download Buttons -->
             <div class="flex justify-end space-x-4 mb-8">
@@ -147,7 +147,7 @@
         const qsa = (selector) => document.querySelectorAll(selector);
 
         // Chart initialization
-        let salesChart;
+        // let salesChart;
 
         // Pagination variables
         let currentPage = 1;
@@ -171,7 +171,7 @@
                 if (data.success) {
                     updateSummary(data.summary);
                     updateSalesTable(data.salesData);
-                    updateSalesChart(data.salesData);
+                    // updateSalesChart(data.salesData);
                     updatePagination(data.pagination);
                 } else {
                     Swal.fire('Error', data.message || 'Failed to generate report', 'error');
@@ -212,34 +212,34 @@
         }
 
         // // Update Sales Chart
-        function updateSalesChart(salesData) {
-            const ctx = qs("#salesChart").getContext('2d');
+        // function updateSalesChart(salesData) {
+        //     const ctx = qs("#salesChart").getContext('2d');
             
-            if (salesChart) {
-                salesChart.destroy();
-            }
+        //     if (salesChart) {
+        //         salesChart.destroy();
+        //     }
 
-            salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: salesData.map(day => day._id),
-                    datasets: [{
-                        label: 'Net Sales',
-                        data: salesData.map(day => day.netAmount),
-                        borderColor: '#f97316',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
+        //     salesChart = new Chart(ctx, {
+        //         type: 'line',
+        //         data: {
+        //             labels: salesData.map(day => day._id),
+        //             datasets: [{
+        //                 label: 'Net Sales',
+        //                 data: salesData.map(day => day.netAmount),
+        //                 borderColor: '#f97316',
+        //                 tension: 0.1
+        //             }]
+        //         },
+        //         options: {
+        //             responsive: true,
+        //             scales: {
+        //                 y: {
+        //                     beginAtZero: true
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
 
         // Update Pagination
         function updatePagination(pagination) {

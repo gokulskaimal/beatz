@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +40,6 @@
     }
   </style>
 </head>
-
 <body class="min-h-screen bg-background text-white font-sans">
   <div class="flex h-screen">
     <!-- Sidebar -->
@@ -145,46 +143,64 @@
         </div>
       </div>
 
-      <!-- Best Selling Products -->
-      <div class="gradient-card p-6 rounded-xl mb-8">
-        <h2 class="text-xl font-bold text-yellow-500 mb-4">Best Selling Products (Top 10)</h2>
-        <div id="bestSellingProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <% bestSellingProducts.forEach(product => { %>
-            <div class="bg-surface p-4 rounded-lg shadow transition-transform duration-200 hover:scale-105">
-              <img src="<%= product.image %>" alt="<%= product.product_name %>" class="w-full h-32 object-cover rounded-md mb-2">
-              <h3 class="font-semibold text-neon mb-2"><%= product.product_name %></h3>
-              <p class="text-sm">Sales: <%= product.sales %></p>
-            </div>
-          <% }); %>
+      <!-- Tab Navigation -->
+      <div class="mb-8">
+        <div class="flex space-x-4 border-b border-gray-700">
+          <button class="tab-button py-2 px-4 text-neon border-b-2 border-neon" data-tab="products">Products</button>
+          <button class="tab-button py-2 px-4 text-gray-400 hover:text-neon" data-tab="categories">Categories</button>
+          <button class="tab-button py-2 px-4 text-gray-400 hover:text-neon" data-tab="brands">Brands</button>
         </div>
       </div>
 
-      <!-- Best Selling Categories and Brands -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="gradient-card p-6 rounded-xl">
-          <h2 class="text-xl text-yellow-500 text font-bold mb-4">Best Selling Categories (Top 10)</h2>
-          <div id="bestSellingCategories">
-            <ul class="space-y-2">
-              <% bestSellingCategories.forEach(category => { %>
-                <li class="flex justify-between items-center">
-                  <span class="text-neon"><%= category.name %></span>
-                  <span class="bg-surface px-2 py-1 rounded"><%= category.sales %></span>
-                </li>
+      <!-- Tab Content -->
+      <div id="tabContent" class="mb-8">
+        <!-- Products Tab (default visible) -->
+        <div id="productsTab" class="tab-content">
+          <div class="gradient-card p-6 rounded-xl mb-8">
+            <h2 class="text-xl font-bold text-yellow-500 mb-4">Best Selling Products (Top 10)</h2>
+            <div id="bestSellingProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <% bestSellingProducts.forEach(product => { %>
+                <div class="bg-surface p-4 rounded-lg shadow transition-transform duration-200 hover:scale-105">
+                  <img src="<%= product.image %>" alt="<%= product.product_name %>" class="w-full h-32 object-cover rounded-md mb-2">
+                  <h3 class="font-semibold text-neon mb-2"><%= product.product_name %></h3>
+                  <p class="text-sm">Sales: <%= product.sales %></p>
+                </div>
               <% }); %>
-            </ul>
+            </div>
           </div>
         </div>
-        <div class="gradient-card p-6 rounded-xl">
-          <h2 class="text-xl text-yellow-500 font-bold mb-4">Best Selling Brands (Top 10)</h2>
-          <div id="bestSellingBrands">
-            <ul class="space-y-2">
-              <% bestSellingBrands.forEach(brand => { %>
-                <li class="flex justify-between items-center">
-                  <span class="text-neon"><%= brand.name %></span>
-                  <span class="bg-surface px-2 py-1 rounded"><%= brand.sales %></span>
-                </li>
-              <% }); %>
-            </ul>
+
+        <!-- Categories Tab (initially hidden) -->
+        <div id="categoriesTab" class="tab-content hidden">
+          <div class="gradient-card p-6 rounded-xl">
+            <h2 class="text-xl text-yellow-500 font-bold mb-4">Top Selling Categories</h2>
+            <div id="bestSellingCategories">
+              <ul class="space-y-2">
+                <% bestSellingCategories.forEach(category => { %>
+                  <li class="flex justify-between items-center">
+                    <span class="text-neon"><%= category.name %></span>
+                    <span class="bg-surface px-2 py-1 rounded"><%= category.sales %></span>
+                  </li>
+                <% }); %>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brands Tab (initially hidden) -->
+        <div id="brandsTab" class="tab-content hidden">
+          <div class="gradient-card p-6 rounded-xl">
+            <h2 class="text-xl text-yellow-500 font-bold mb-4">Top Selling Brands</h2>
+            <div id="bestSellingBrands">
+              <ul class="space-y-2">
+                <% bestSellingBrands.forEach(brand => { %>
+                  <li class="flex justify-between items-center">
+                    <span class="text-neon"><%= brand.name %></span>
+                    <span class="bg-surface px-2 py-1 rounded"><%= brand.sales %></span>
+                  </li>
+                <% }); %>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -192,33 +208,37 @@
   </div>
 
   <script>
-    // Utility Functions
     const qs = (selector) => document.querySelector(selector);
     const qsa = (selector) => document.querySelectorAll(selector);
-
-    // Chart initialization
     let ordersChart;
 
-    // Render orders chart
-    function renderOrdersChart(data) {
+    function renderOrdersChart(data, filter) {
       const ctx = qs('#ordersChart').getContext('2d');
       
       if (ordersChart) {
         ordersChart.destroy();
       }
 
-      // Create gradient for the line
       const gradient = ctx.createLinearGradient(0, 0, 0, 400);
       gradient.addColorStop(0, 'rgba(173, 255, 47, 0.4)');
       gradient.addColorStop(1, 'rgba(173, 255, 47, 0)');
 
+      let labels, values;
+      if (filter === 'yearly') {
+        labels = data.map(item => item.date);
+        values = data.map(item => item.orders);
+      } else {
+        labels = data.map(item => item.date);
+        values = data.map(item => item.orders);
+      }
+
       ordersChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: data.map(item => item.date),
+          labels: labels,
           datasets: [{
             label: 'Orders',
-            data: data.map(item => item.orders),
+            data: values,
             borderColor: '#ADFF2F',
             backgroundColor: gradient,
             tension: 0.4,
@@ -274,7 +294,8 @@
                 }
               }
             }
-          },interaction: {
+          },
+          interaction: {
             intersect: false,
             mode: 'index'
           }
@@ -282,15 +303,36 @@
       });
     }
 
-    // Initialize dashboard
     document.addEventListener('DOMContentLoaded', () => {
-      renderOrdersChart(<%- JSON.stringify(salesData) %>);
+      const currentFilter = '<%= filter %>';
+      renderOrdersChart(<%- JSON.stringify(salesData) %>, currentFilter);
 
-      // Add event listener for filter change
       qs('#dashboardFilter').addEventListener('change', function() {
         window.location.href = `/admin/dashboard?filter=${this.value}`;
       });
+
+      qsa('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+          const tabName = button.getAttribute('data-tab');
+          switchTab(tabName);
+        });
+      });
     });
+
+    function switchTab(tabName) {
+      qsa('.tab-content').forEach(content => content.classList.add('hidden'));
+      qs(`#${tabName}Tab`).classList.remove('hidden');
+      
+      qsa('.tab-button').forEach(button => {
+        if (button.getAttribute('data-tab') === tabName) {
+          button.classList.add('text-neon', 'border-b-2', 'border-neon');
+          button.classList.remove('text-gray-400');
+        } else {
+          button.classList.remove('text-neon', 'border-b-2', 'border-neon');
+          button.classList.add('text-gray-400');
+        }
+      });
+    }
   </script>
 </body>
 </html>

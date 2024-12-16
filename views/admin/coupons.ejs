@@ -393,8 +393,9 @@
 
     function renderCoupons(coupons) {
       const tableBody = qs("#couponsTableBody");
-      tableBody.innerHTML = coupons.map(coupon => `
+      tableBody.innerHTML = coupons.map((coupon,index) => `
         <tr class="border-b border-gray-800">
+          <td class="p-4">${index+1}</td>
           <td class="p-4">${coupon.code}</td>
           <td class="p-4">${coupon.couponType}</td>
           <td class="p-4">${coupon.couponValue}${coupon.couponType === 'Percentage' ? '%' : '₹'}</td>
