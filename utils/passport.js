@@ -26,7 +26,7 @@ passport.use(
           }
 
           // Link Google account if not already linked
-          if (!user.googleId) {
+          if (!user.googleId ) {
             user.googleId = profile.id;
             await user.save();
           }

@@ -158,9 +158,10 @@
                             <%= product.stock === 0 ? 'Out of Stock' : 'Add to Cart' %>
                         </button>
                         <button
+                        onclick="toggleWishlist('<%= product._id %>')"
                             class="flex-1 bg-gray-700 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-bold <%= product.stock === 0 ? 'opacity-50 cursor-not-allowed' : '' %>"
                             <%= product.stock === 0 ? 'disabled' : '' %>>
-                            Buy Now
+                            Add to Wishlist
                         </button>
                     </div>
                 </div>
@@ -285,6 +286,53 @@
                 }
             }
         });
+        function toggleWishlist(productId) {
+            fetch('/user/wishlist/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    // Update the wishlist icon
+                    const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
+                    // if (wishlistBtn) {
+                    //     const svg = wishlistBtn.querySelector('svg');
+                    //     svg.classList.toggle('text-red-500');
+                    //     svg.classList.toggle('fill-current');
+                    //     if (svg.getAttribute('fill') === 'none') {
+                    //         svg.setAttribute('fill', 'currentColor');
+                    //     } else {
+                    //         svg.setAttribute('fill', 'none');
+                    //     }
+                    // }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.message,
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong!',
+                });
+            });
+        }
     </script>
 </body>
 </html>

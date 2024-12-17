@@ -37,15 +37,13 @@
 </style>
 </head>
 <body class="min-h-screen bg-black text-white">
-<!-- Header -->
   <!-- Include Header -->
   <%- include('../partials/header') %>
 
   <main class="flex flex-col items-center justify-center min-h-screen py-12">
     <div class="bg-gray-900 p-8 rounded-lg shadow-md w-96">
       <h1 class="text-center text-xl font-bold text-yellow-500 mb-4">LOGIN</h1>
-      <form action="/auth/login" method="POST" onsubmit="return handleLoginSubmit(event)">
-        <input type="text" id="message" name="message" value="<%= message || '' %>" style="display: none;">
+      <form id="loginForm" action="/auth/login" method="POST">
         <div class="mb-4">
           <label for="email" class="block mb-2 text-sm">Email Address</label>
           <input 
@@ -73,16 +71,15 @@
       <div class="my-4 text-center text-gray-400">OR</div>
       <button
         type="button"
-        class="w-full py-2 bg-gray-900 text-white rounded hover:bg-gray-700 transition duration-300 flex items-center justify-center">
+        onclick="window.location.href='/auth/google'"
+        class="w-full py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition duration-300 flex items-center justify-center">
         <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
         </svg>
-        <a href="/auth/google" class="btn btn-dark">
-          <i class="fa fa-google"></i> Sign In with Google
-        </a>        
+        Sign In with Google
       </button>
       <p class="mt-4 text-sm text-center text-gray-400">Not having an account? 
         <a href="/auth/signup" class="text-yellow-500 hover:underline">Signup</a>
@@ -92,22 +89,50 @@
 
   <!-- Include Footer -->
   <%- include('../partials/footer') %>
-</body>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-      const message = document.getElementById("message").value;
-      if (message) {
-          const messageBox = document.createElement("div");
-          messageBox.textContent = message;
-          messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
-          document.body.insertBefore(messageBox, document.body.firstChild);
 
-          // Auto-hide the message after 5 seconds
-          setTimeout(() => {
-              messageBox.remove();
-          }, 5000);
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(Object.fromEntries(formData)),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 1500
+          });
+          window.location.href = data.redirectUrl;
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: data.message || 'An error occurred. Please try again.'
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'An error occurred. Please try again.'
+        });
       }
-  });
-</script>
-
+    });
+  </script>
+</body>
 </html>
+

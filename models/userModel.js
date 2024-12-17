@@ -5,10 +5,10 @@ const userSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String },
-  googleId: { type: String, unique: true , sparse: true},
-  password: { type: String},
-  isBlocked:{ type: Boolean, required: true },
+  googleId: { type: String },
+  password: { type: String },
+  isBlocked: { type: Boolean, required: true, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
- 
+

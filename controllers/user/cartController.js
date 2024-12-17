@@ -113,8 +113,8 @@ exports.getCart = async (req, res) => {
             return res.json({
                 cart: cart.items,
                 subTotal: cart.subTotal,
-                totalDiscount: cart.totalDiscount,
-                grandTotal: cart.grandTotal,
+                totalDiscount:Math.round( cart.totalDiscount),
+                grandTotal:Math.round( cart.grandTotal),
                 cartItemCount
             });
         }
@@ -122,8 +122,8 @@ exports.getCart = async (req, res) => {
         res.render('user/cart', {
             cart: cart.items,
             subTotal: cart.subTotal,
-            totalDiscount: cart.totalDiscount,
-            grandTotal: cart.grandTotal,
+            totalDiscount: Math.round(cart.totalDiscount),
+            grandTotal: Math.round(cart.grandTotal),
             message: null,
             user: req.user,
             cartItemCount

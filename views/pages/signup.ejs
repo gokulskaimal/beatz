@@ -30,8 +30,7 @@
     <main class="flex flex-col items-center justify-center min-h-screen py-12">
       <div class="bg-gray-900 p-8 rounded-lg shadow-xl w-full max-w-md border border-none">
         <h1 class="text-center text-2xl font-bold text-yellow-500 mb-6">Create an Account</h1>
-        <form action="/auth/signup" method="POST" onsubmit="return handleSignupSubmit(event)" class="space-y-4">
-          <input type="text" id="message" name="message" value="<%= message || '' %>" style="display: none;">
+        <form id="signupForm" action="/auth/signup" method="POST" class="space-y-4">
           <div>
             <label for="firstName" class="block mb-1 text-sm text-gray-400">First Name</label>
             <input type="text" id="firstName" name="firstName" required
@@ -96,8 +95,7 @@
     <%- include('../partials/footer') %>
 
       <script>
-
-        function handleSignupSubmit(event) {
+        document.getElementById('signupForm').addEventListener('submit', async (event) => {
           event.preventDefault();
 
           const firstName = document.getElementById('firstName').value.trim();
@@ -107,8 +105,7 @@
           const password = document.getElementById('password').value;
           const confirmPassword = document.getElementById('confirmPassword').value;
           const signupButton = document.getElementById('signupButton');
-          signupButton.disabled = true;
-          signupButton.textContent = 'Creating Account...';
+
           // Name Validation
           const nameRegex = /[a-z]{2,}$/;
           if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
@@ -117,7 +114,7 @@
               title: 'Invalid Name',
               text: 'Names must contain only letters and be at least 2 characters long.',
             });
-            return false;
+            return;
           }
 
           // Email Validation
@@ -128,7 +125,7 @@
               title: 'Invalid Email',
               text: 'Please enter a valid email address.',
             });
-            return false;
+            return;
           }
 
           // Phone Validation
@@ -139,7 +136,7 @@
               title: 'Invalid Phone Number',
               text: 'Phone number must be exactly 10 digits.',
             });
-            return false;
+            return;
           }
 
           // Password Validation
@@ -150,7 +147,7 @@
               title: 'Weak Password',
               text: 'Password must be at least 8 characters long, and include an uppercase letter, a lowercase letter, a number, and a special character.',
             });
-            return false;
+            return;
           }
 
           // Confirm Password Validation
@@ -160,32 +157,60 @@
               title: 'Passwords Do Not Match',
               text: 'Please ensure both passwords are the same.',
             });
-            return false;
+            return;
           }
 
-          event.target.submit();
-        }
+          signupButton.disabled = true;
+          signupButton.textContent = 'Creating Account...';
 
+          try {
+            const response = await fetch('/auth/signup', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                phone,
+                password,
+                confirmPassword,
+              }),
+            });
 
+            const data = await response.json();
 
-        document.addEventListener("DOMContentLoaded", () => {
-          const message = document.getElementById("message").value;
-          if (message) {
-            const messageBox = document.createElement("div");
-            messageBox.textContent = message;
-            messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
-            document.body.insertBefore(messageBox, document.body.firstChild);
-
-            // Auto-hide the message after 5 seconds
-            setTimeout(() => {
-              messageBox.remove();
-            }, 5000);
+            if (response.ok && data.success) {
+              await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                showConfirmButton: false,
+                timer: 1500
+              });
+              window.location.href = data.redirectUrl;
+            } else {
+              await Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: data.message || 'An error occurred. Please try again.'
+              });
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            await Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'An error occurred. Please try again.'
+            });
+          } finally {
+            signupButton.disabled = false;
+            signupButton.textContent = 'Create Account';
           }
         });
-
-
-
       </script>
 </body>
 
 </html>
+

@@ -16,7 +16,7 @@ exports.postLogin = async (req, res) => {
   try {
     const admin = await Admin.findOne({ email });
     if (admin && (await bcrypt.compare(password, admin.password))) {
-      req.session.admin = true; // Set session
+      req.session.admin = admin; // Set session
       return res.redirect('/admin/dashboard');
     }
     res.render('admin/login', { error: 'Invalid email or password' });

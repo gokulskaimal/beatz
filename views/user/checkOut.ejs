@@ -230,12 +230,12 @@
                                         <div>
                                             <h4>
                                                 <span id="original-price-<%=item.product._id%>" class="text-gray-400 line-through" data-base-price="<%= item.product.price %>">
-                                                    <span>&#8377;</span><%= item.product.price * item.quantity %>
+                                                    <span>&#8377;</span><%= Math.round(item.product.price * item.quantity) %>
                                                 </span>
                                                 <span id="discount-price-<%=item.product._id%>" class="text-lg font-bold ml-2 text-white" data-base-price="<%= item.finalPrice %>">
-                                                    <span class="text-red-500">&#8377;</span><%= item.finalPrice * item.quantity %>
+                                                    <span class="text-red-500">&#8377;</span><%= Math.round(item.finalPrice * item.quantity) %>
                                                 </span>
-                                                <span class="text-green-500 font-semibold ml-2"><%= item.product.discount %>% off</span>
+                                                <span class="text-green-500 font-semibold ml-2"><%= Math.round(item.product.discount) %>% off</span>
                                             </h4>
 
                                             <h3 class="text-gray-400 font-semibold text-sm">
@@ -263,8 +263,8 @@
                     <% } %>
                 </div>
                 <ul class="text-gray-300 space-y-4 mt-4">
-                    <li class="flex flex-wrap gap-4 text-sm">Subtotal (<%=totalItems%> <%= totalItems > 1 ? 'items' :' item' %>)<span class="ml-auto font-semibold"><span class=" text-red-500">&#8377;</span><span id="totalPrice"><%= totalPrice %></span>.00</span></li>
-                    <li class="flex flex-wrap gap-4 text-sm">Product Discount <span class="ml-auto font-semibold text-green-500"><i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span class="product-discount"><%= discount %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Subtotal (<%=totalItems%> <%= totalItems > 1 ? 'items' :' item' %>)<span class="ml-auto font-semibold"><span class=" text-red-500">&#8377;</span><span id="totalPrice"><%= Math.round(totalPrice) %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Product Discount <span class="ml-auto font-semibold text-green-500"><i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span class="product-discount"><%= Math.round(discount) %></span></span></li>
                     <li id="couponDiscountLine" class="flex flex-wrap gap-4 text-sm <%= !appliedCoupon ? 'hidden' : '' %>">
                         Coupon Discount 
                         <span class="ml-auto font-semibold text-green-500">
@@ -273,7 +273,7 @@
                     </li>
                     <li class="flex flex-wrap gap-4 text-sm">Delivery Charges<span class="ml-auto font-semibold text-green-500"><span class="line-through text-gray-500"><span>&#8377;</span>40</span> Free</span></li>
                     <hr class="border-gray-700" />
-                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total Amount<span class="ml-auto "><span class="text-red-500">&#8377;</span><span id="totalDiscountPrice"><%= totalDiscountPrice %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total Amount<span class="ml-auto "><span class="text-red-500">&#8377;</span><span id="totalDiscountPrice"><%= Math.round(totalDiscountPrice) %></span></span></li>
                 </ul>
 
                 <!-- Coupon Section -->
@@ -306,7 +306,7 @@
                     <% } %>
 
                 <div class="w-full py-2">
-                    <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= discount + (appliedCoupon ? appliedCoupon.discount : 0) %></span> on this order</h3>
+                    <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= Math.round(discount) + (appliedCoupon ? Math.round(appliedCoupon.discount) : 0) %></span> on this order</h3>
                 </div>
             </div>
         </div>

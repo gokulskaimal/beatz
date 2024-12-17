@@ -322,7 +322,7 @@ exports.cancelOrderItem = async (req, res) => {
         }
 
         // Process refund
-        if (order.payment.paymentMethod !== 'Cash On Delivery') {
+        if (order.payment.paymentMethod !== 'Cash On Delivery' && order.payment.paymentStatus === 'Completed') {
             await Wallet.findOneAndUpdate(
                 { user: order.customer.customerId },
                 { 

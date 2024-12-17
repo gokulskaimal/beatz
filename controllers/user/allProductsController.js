@@ -6,7 +6,7 @@ const Cart = require('../../models/cartModel');
 exports.getAllProducts = async (req, res) => {
     try {
         const { search, category, brand, minPrice, maxPrice, rating, sort, page = 1 } = req.query;
-        const limit = 9; // Number of products per page
+        const limit = 6; // Number of products per page
 
         // Build the filter object
         let filter = {

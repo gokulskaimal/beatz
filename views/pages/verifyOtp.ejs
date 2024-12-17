@@ -1,128 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify OTP - Beatz</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            orange: {
-              500: "#f97316",
-              600: "#ea580c",
-            },
-          },
-        },
-      },
-    };
-  </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
     body {
       font-family: 'Inter', sans-serif;
       background-color: #000;
     }
-
     .search-input {
       background-color: rgba(255, 255, 255, 0.1);
       border: none;
       color: white;
     }
-
     .search-input::placeholder {
       color: rgba(255, 255, 255, 0.5);
     }
   </style>
 </head>
-
 <body class="min-h-screen bg-black text-white">
+  <!-- Header -->
   <!-- Include Header -->
   <%- include('../partials/header') %>
 
-    <main class="flex flex-col items-center justify-center min-h-screen py-12">
-      <div class="bg-gray-900 p-8 rounded-lg shadow-md w-96">
-        <h1 class="text-center text-xl font-bold text-orange-500 mb-4">VERIFY OTP</h1>
-        <form action="/auth/verify-otp" method="POST">
-          <input type="text" id="message" name="message" value="<%= message || '' %>" style="display: none;">
-          <div class="mb-4">
-            <label for="otp" class="block mb-2 text-sm">Enter OTP</label>
-            <input type="text" id="otp" name="otp" required
-              class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
-          </div>
+  <!-- Main Content -->
+  <main class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+    <div class="w-full max-w-md mx-auto p-6">
+      <div class="bg-gray-900 backdrop-blur-sm p-8 rounded-lg">
+        <h1 class="text-center text-2xl font-bold text-[#f97316] mb-8">Enter your OTP</h1>
+        <form id="otpForm" action="/auth/verify-otp" method="POST" class="space-y-6">
+          <input type="text" id="otp" name="otp" required maxlength="6"
+            class="w-full bg-zinc-800/50 border border-zinc-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f97316]"
+            placeholder="Enter your OTP">
           <button type="submit"
-            class="w-full mt-4 py-2 bg-orange-500 text-black font-bold rounded hover:bg-orange-600">Verify OTP</button>
+            class="w-full py-3 bg-[#f97316] text-white font-medium rounded-lg hover:bg-[#ea580c] transition-colors">
+            SUBMIT
+          </button>
         </form>
-        <p class="mt-4 text-sm text-center text-gray-400">Didn't receive the OTP?
-          <button id="resendOtpBtn" class="text-orange-500 hover:underline cursor-pointer" disabled>Resend OTP</button>
-          <span id="timer" class="text-orange-500 ml-2"></span>
+        <div class="mt-6 text-center">
+          <p class="text-sm text-zinc-400">
+            Didn't get the OTP? 
+            <button id="resend-btn" class="text-[#f97316] hover:text-[#ea580c] disabled:text-zinc-600" disabled>
+              Resend
+            </button>
+          </p>
+          <span id="countdown" class="text-sm text-red-500 mt-2 block"></span>
+        </div>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <!-- Include Footer -->
-    <%- include('../partials/footer') %>
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const resendOtpBtn = document.getElementById('resendOtpBtn');
-      const timerSpan = document.getElementById('timer');
-    
-      // Initialize or fetch remaining time
-      let resendTimeout = localStorage.getItem('resendTimeout');
-      if (resendTimeout) {
-        const remainingTime = Math.max(0, resendTimeout - Date.now());
-        startResendTimer(remainingTime);
-      } else {
-        startResendTimer(0);
-      }
-    
-      function startResendTimer(remainingTime) {
-        resendOtpBtn.disabled = true;
-        const countdown = setInterval(() => {
-          const secondsLeft = Math.floor(remainingTime / 1000);
-          timerSpan.textContent = `00:${secondsLeft.toString().padStart(2, '0')}`;
-    
-          if (remainingTime <= 0) {
-            clearInterval(countdown);
-            resendOtpBtn.disabled = false;
-            resendOtpBtn.textContent = "Resend OTP";
-            timerSpan.textContent = "";
-            localStorage.removeItem('resendTimeout');
-          } else {
-            remainingTime -= 1000;
-            localStorage.setItem('resendTimeout', Date.now() + remainingTime);
-          }
-        }, 1000);
-      }
-    
-      resendOtpBtn.addEventListener('click', async () => {
-        try {
-          const response = await fetch('/auth/resend-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-          });
-    
-          const data = await response.json();
-    
-          if (response.ok) {
-            Swal.fire('Success', data.message, 'success');
-            startResendTimer(60000); // Start a new 1-minute timer
-          } else {
-            Swal.fire('Error', data.message, 'error');
-          }
-        } catch (error) {
-          Swal.fire('Error', 'Failed to resend OTP. Please try again.', 'error');
+  <!-- Footer -->
+  <%- include('../partials/footer') %>
+
+  <script>
+    let countdownTimer;
+    const resendButton = document.getElementById('resend-btn');
+    const countdownElement = document.getElementById('countdown');
+    const otpForm = document.getElementById('otpForm');
+  
+    async function handleResendOtp() {
+      try {
+        resendButton.disabled = true;
+        resendButton.textContent = "Resend";
+  
+        const response = await fetch('/auth/resend-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok && data.success) {
+          await Swal.fire('Success', data.message, 'success');
+          startCountdown(60); // Restart 1-minute countdown
+        } else {
+          await Swal.fire('Error', data.message || 'Failed to resend OTP', 'error');
+          resendButton.disabled = false;
+          resendButton.textContent = "Resend";
         }
-    
-        resendOtpBtn.disabled = true;
-        resendOtpBtn.textContent = 'Please wait...';
-      });
-    });
-    </script>
-</body>
+      } catch (error) {
+        console.error('Error:', error);
+        await Swal.fire('Error', 'Failed to resend OTP. Please try again.', 'error');
+        resendButton.disabled = false;
+        resendButton.textContent = "Resend";
+      }
+    }
+  
+    function startCountdown(seconds) {
+      clearInterval(countdownTimer);
+      const endTime = Date.now() + seconds * 1000;
+      localStorage.setItem('otpEndTime', endTime);
+      updateCountdown();
+  
+      countdownTimer = setInterval(updateCountdown, 1000);
+    }
+  
+    function updateCountdown() {
+      const endTime = parseInt(localStorage.getItem('otpEndTime'));
+      const now = Date.now();
+      const remainingSeconds = Math.max(0, Math.ceil((endTime - now) / 1000));
+  
+      if (remainingSeconds > 0) {
+        resendButton.disabled = true;
+        countdownElement.textContent = `Resend available in ${remainingSeconds}s`;
+      } else {
+        clearInterval(countdownTimer);
+        resendButton.disabled = false;
+        countdownElement.textContent = '';
+        localStorage.removeItem('otpEndTime');
+      }
+    }
+  
+    otpForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(otpForm);
 
+      try {
+        const response = await fetch(otpForm.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(Object.fromEntries(formData)),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 1500
+          });
+          window.location.href = data.redirectUrl;
+        } else {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: data.message || 'An error occurred. Please try again.'
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'An error occurred. Please try again.'
+        });
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      resendButton.addEventListener('click', handleResendOtp);
+  
+      const savedEndTime = localStorage.getItem('otpEndTime');
+      if (savedEndTime) {
+        const now = Date.now();
+        if (savedEndTime > now) {
+          const remainingSeconds = Math.ceil((savedEndTime - now) / 1000);
+          startCountdown(remainingSeconds);
+        } else {
+          localStorage.removeItem('otpEndTime');
+        }
+      } else {
+        startCountdown(60); // Start initial 1-minute countdown if no saved time
+      }
+    });
+  </script>
+</body>
 </html>
+
