@@ -36,7 +36,6 @@ router.post('/cart/update',userAuth.checkSession,cartController.updateQuantity)
 router.post('/cart/remove',userAuth.checkSession,cartController.removeFromCart)
 
 //View All
-
 router.get('/allProducts',userAuth.checkSession,allProductsController.getAllProducts)
 
 // Checkout routes

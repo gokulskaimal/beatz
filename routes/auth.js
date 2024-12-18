@@ -5,23 +5,33 @@ const passport = require('passport');
 const userAuth = require('../middlewares/userAuth');
 
 
-// Google OAuth Login
 router.get(
   '/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
 // Google OAuth Callback
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/auth/login' }),
-  (req, res) => {
-    req.session.user = req.user;
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', (err, user, info) => {
+    if (err) {
+      return res.redirect('/auth/login?error=' + encodeURIComponent('An error occurred during authentication'));
+    }
+    if (!user) {
+      if (info && info.message === 'You are blocked. Contact support.') {
+        return res.redirect('/auth/login?error=' + encodeURIComponent(info.message));
+      }
+      return res.redirect('/auth/login?error=' + encodeURIComponent('Authentication failed'));
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.redirect('/auth/login?error=' + encodeURIComponent('An error occurred during login'));
+      }
+      req.session.user = user;
+      return res.redirect('/user/home');
+    });
+  })(req, res, next);
+});
 
-    // Successful authentication
-    res.redirect('/user/home');
-  }
-);
 
 // Login and signup pages
 router.get('/login', userAuth.isLogin, authController.getLoginPage);

@@ -153,8 +153,11 @@ exports.addToCart = async (req, res) => {
                 match: { status: 'Active' }
             });
 
-        if (!product || !product.category || product.stock < quantity) {
+        if (!product || !product.category) {
             return res.status(400).json({ status: 'error', message: 'Product not available or not active.' });
+        }
+        if (product.stock < quantity) {
+            return res.status(400).json({ status: 'error', message: 'Product not available in requested quantity' });
         }
 
         let cart = await Cart.findOne({ userId });
@@ -166,7 +169,9 @@ exports.addToCart = async (req, res) => {
         if (itemIndex > -1) {
             const currentQuantity = cart.items[itemIndex].quantity;
             const newQuantity = currentQuantity + quantity;
-
+            if(newQuantity > product.stock){
+                return res.status(400).json({ status: 'error', message: 'Product not available in requested quantity' });
+            }
             if (newQuantity > 4) {
                 return res.status(400).json({ status: 'error', message: 'You cannot add more than 4 units of this product.' });
             }
@@ -262,8 +267,11 @@ exports.updateQuantity = async (req, res) => {
                 match: { status: 'Active' }
             });
 
-        if (!product || !product.category || product.stock < quantity) {
+        if (!product || !product.category) {
             return res.status(400).json({ status: 'error', message: 'Product not available or not active.' });
+        }
+        if (product.stock < quantity) {
+            return res.status(400).json({ status: 'error', message: 'Product not available in requested quantity.' });
         }
 
         if (!cart) {

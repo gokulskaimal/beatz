@@ -412,9 +412,8 @@ exports.blockUser = async (req, res) => {
     }
     user.isBlocked = true;
     await user.save();
-
-    if (req.session.users && req.session.users[user._id]) {
-      delete req.session.users[user._id];
+    if (req.session.user) {
+      delete req.session.user;
     }
 
     res.json({ success: true, message: 'User blocked successfully' });

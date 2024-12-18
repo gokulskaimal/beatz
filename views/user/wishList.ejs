@@ -62,6 +62,7 @@
             const wishlistContent = document.getElementById('wishlistContent');
             if (wishlist.length === 0) {
                 wishlistContent.innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
+                showEmptyWishlistPopup();
             } else {
                 wishlistContent.innerHTML = wishlist.map(item => `
                     <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full" data-wishlist-item-id="${item.wishlistItemId}">
@@ -125,6 +126,21 @@
             }
         }
 
+        function showEmptyWishlistPopup() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Your Wishlist is Empty',
+                text: 'Start adding products to your wishlist!',
+                confirmButtonText: 'Explore Products',
+                showCancelButton: true,
+                cancelButtonText: 'Close',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/user/allProducts'; // Redirect to products page
+                }
+            });
+        }
+
         async function addToCart(productId) {
             try {
                 const response = await fetch('/user/cart/add', {
@@ -168,6 +184,7 @@
                     }
                     if (document.querySelectorAll('#wishlistContent > div').length === 0) {
                         document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
+                        showEmptyWishlistPopup();
                     }
                 } else {
                     showMessage('error', 'Error', result.message);

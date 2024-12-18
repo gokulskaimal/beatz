@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -131,6 +130,21 @@
             });
         }
 
+        function showEmptyCartPopup() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Your Cart is Empty',
+                text: 'Add some products to your cart and start shopping!',
+                confirmButtonText: 'Explore Products',
+                showCancelButton: true,
+                cancelButtonText: 'Close',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/user/allProducts'; // Redirect to products page
+                }
+            });
+        }
+
         async function fetchCart() {
             try {
                 const response = await fetch('/user/cart', {
@@ -140,7 +154,8 @@
                 });
                 const data = await response.json();
                 if (data.cart.length === 0) {
-                    // If the cart is empty, reload the page
+                    // If the cart is empty, show the popup and reload the page
+                    showEmptyCartPopup();
                     return window.location.reload();
                 } else {
                     renderCart(data);
@@ -156,6 +171,7 @@
             const cartContent = document.getElementById('cartContent');
             if (data.cart.length === 0) {
                 cartContent.innerHTML = '<p class="text-gray-400">Your cart is empty.</p>';
+                showEmptyCartPopup();
             } else {
                 let html = `
                 <div class="flex flex-col md:flex-row gap-8">
@@ -306,7 +322,8 @@
                     if (response.ok) {
                         showMessage('success', 'Removed!', result.message);
                         if (result.isEmpty) {
-                            // If the cart is empty, reload the page
+                            // If the cart is empty, show the popup and reload the page
+                            showEmptyCartPopup();
                             window.location.reload();
                         } else {
                             fetchCart();
@@ -328,7 +345,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const message = "<%= message %>";
             if (message) {
-                showMessage('info', 'Cart Status', message);
+                showEmptyCartPopup();
             }
             fetchCart();
         });
@@ -353,3 +370,4 @@
 </body>
 
 </html>
+

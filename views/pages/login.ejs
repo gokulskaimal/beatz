@@ -91,6 +91,18 @@
   <%- include('../partials/footer') %>
 
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorMessage = urlParams.get('error');
+      if (errorMessage) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Authentication Error',
+          text: decodeURIComponent(errorMessage)
+        });
+      }
+    });
+
     document.getElementById('loginForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = event.target;
