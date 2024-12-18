@@ -34,6 +34,7 @@ router.get('/cart',userAuth.checkSession,cartController.getCart)
 router.post('/cart/add',userAuth.checkSession,cartController.addToCart)
 router.post('/cart/update',userAuth.checkSession,cartController.updateQuantity)
 router.post('/cart/remove',userAuth.checkSession,cartController.removeFromCart)
+router.post('/validate-cart',userAuth.checkSession,checkoutController.validateCart)
 
 //View All
 router.get('/allProducts',userAuth.checkSession,allProductsController.getAllProducts)

@@ -237,7 +237,7 @@
                         </div>
                         <div class="flex justify-between items-center mb-2">
                             <span>Discount:</span>
-                            <span class="font-semibold text-green-500">- <span class="text-red-600 font-bold">₹</span>${data.totalDiscount}</span>
+                            <span class="font-semibold text-green-500"><span class="text-red-600 font-bold">₹</span>${data.totalDiscount}</span>
                         </div>
                         <div class="flex justify-between items-center mb-2">
                             <span>Shipping:</span>
@@ -337,8 +337,44 @@
             }
         }
 
-        function proceedToCheckout() {
-            window.location.href = '/user/checkout';
+        async function proceedToCheckout() {
+            try {
+                const response = await fetch('/user/validate-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    if (result.valid) {
+                        window.location.href = '/user/checkout';
+                    } else {
+                        let errorMessage = result.message;
+                        if (result.invalidItems && result.invalidItems.length > 0) {
+                            errorMessage += '\n\n' + result.invalidItems.join('\n');
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Cart Validation Failed',
+                            text: errorMessage,
+                            confirmButtonText: 'Update Cart',
+                        });
+                    }
+                } else {
+                    throw new Error(result.message || 'An error occurred while validating the cart.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: error.message || 'An error occurred while processing your request. Please try again later.',
+                });
+            }
         }
 
         // Fetch and render cart on page load

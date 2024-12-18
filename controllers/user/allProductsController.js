@@ -37,7 +37,7 @@ exports.getAllProducts = async (req, res) => {
                 match: { status: 'Active' } // Only populate active categories
             })
             .sort(sortOptions[sort] || sortOptions.newest)
-            .skip((page - 1) * limit)
+            .skip((parseInt(page) - 1) * limit)
             .limit(limit);
 
         // Filter out products with inactive categories

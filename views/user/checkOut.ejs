@@ -295,16 +295,9 @@
                     <p id="couponMessage" class="mt-2 text-sm"></p>
                     <button id="removeCouponBtn" onclick="removeCoupon()" class="mt-2 text-sm text-red-500 <%= appliedCoupon ? '' : 'hidden' %>">Remove Coupon</button>
                 </div>
-                <% if (cart && cart.items && cart.items.length > 0) { %>
                 <div class="mt-8 space-y-2">
                     <button type="button" class="text-sm px-4 py-2.5 w-full font-semibold tracking-wide bg-yellow-600 hover:bg-yellow-700 text-black rounded-md" onclick="placeOrder()">PLACE ORDER</button>
                 </div>
-                <% } else { %>
-                    <div class="mt-8 space-y-2">
-                        <button type="button" class=" px-4 py-2.5 w-full font-semibold tracking-wide bg-yellow-600 hover:bg-yellow-700 text-black rounded-md" disabled onclick="placeOrder()">PLACE ORDER</button>
-                    </div>
-                    <% } %>
-
                 <div class="w-full py-2">
                     <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= Math.round(discount) + (appliedCoupon ? Math.round(appliedCoupon.discount) : 0) %></span> on this order</h3>
                 </div>
