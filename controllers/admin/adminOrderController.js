@@ -18,7 +18,7 @@ exports.getOrders = async (req, res) => {
             .limit(limit)
             .populate('customer.customerId', 'firstName lastName email')
             .populate('items.productId', 'product_name image');
-        
+
         res.render('admin/orders', {
             orders,
             currentPage: page,
@@ -104,7 +104,7 @@ exports.handleReturnRequest = async (req, res) => {
 
         if (action === 'approve') {
             item.status = 'Returned';
-            
+
             // Restore product stock
             await Product.findByIdAndUpdate(item.productId, {
                 $inc: { stock: item.quantity }
@@ -112,18 +112,22 @@ exports.handleReturnRequest = async (req, res) => {
 
             // Calculate refund amount
             let refundAmount = item.subtotal;
-            
+
+
+            order.payment.totalAmount -= item.price * item.quantity;
+            order.payment.discountPrice -= item.subtotal;
+            order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
             // If there's a coupon applied, calculate the proportional discount
-            
+
             if (order.payment.appliedCoupon) {
                 const orderTotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
 
-                const itemTotal=item.subtotal;
+                const itemTotal = item.subtotal;
 
-                const discountRatio = (order.payment.couponDiscount / orderTotal)*100
-                const discountValue=(orderTotal*discountRatio)/100
+                const discountRatio = (order.payment.couponDiscount / orderTotal) * 100
+                const discountValue = (orderTotal * discountRatio) / 100
 
-                const discountProportion=(discountValue/orderTotal)*itemTotal
+                const discountProportion = (discountValue / orderTotal) * itemTotal
 
                 // const itemCouponDiscount = item.subtotal * discountRatio;
                 refundAmount = item.subtotal - discountProportion;
@@ -143,9 +147,9 @@ exports.handleReturnRequest = async (req, res) => {
             // Process refund to wallet
             await Wallet.findOneAndUpdate(
                 { user: order.customer.customerId },
-                { 
+                {
                     $inc: { balance: refundAmount },
-                    $push: { 
+                    $push: {
                         transactions: {
                             amount: refundAmount,
                             type: 'credit',
@@ -168,8 +172,12 @@ exports.handleReturnRequest = async (req, res) => {
             //     order.payment.couponDiscount = newCouponDiscount;
             //     console.log("order.payment.couponDiscount",order.payment.couponDiscount)
             // }
-            
+
             // Update payment status
+
+
+
+            order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
             if (order.payment.totalAmount <= 0) {
                 order.payment.paymentStatus = 'Refunded';
             } else {

@@ -295,6 +295,9 @@ exports.cancelOrderItem = async (req, res) => {
 
         item.status = 'Cancelled';
 
+        order.payment.totalAmount -= item.price * item.quantity;
+        order.payment.discountPrice -= item.subtotal;
+        order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
         // Restore product stock
         await Product.findByIdAndUpdate(item.productId, {
             $inc: { stock: item.quantity }
@@ -351,7 +354,7 @@ exports.cancelOrderItem = async (req, res) => {
                 order.payment.paymentStatus = 'Partially Refunded';
             }
         }
-
+        order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
         await order.save();
 
         res.json({ message: 'Item cancelled successfully', order });
