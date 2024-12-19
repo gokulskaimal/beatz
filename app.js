@@ -11,6 +11,7 @@ const app = express();
 const nocache = require("nocache");
 
 
+
 require('dotenv').config();
   
 
@@ -19,20 +20,20 @@ app.use(methodOverride('_method'));
    
   
 // Connect to MongoDB 
-mongoose.connect('mongodb://127.0.0.1:27017/beatz')
+mongoose.connect(process.env.MONGOURI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error(err));  
  
-
+ 
 // Middleware 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret: 'your-secret-key', 
-  resave: false,
+  resave: false, 
   saveUninitialized: true,
-  cookie: { secure: false },
+  cookie: { secure: false }, 
 })); 
  
 
@@ -48,14 +49,12 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views')); 
 
 
-// Routes    
+// Routes     
 app.use('/auth', authRoutes); 
-app.use("/admin", adminRoutes);
+app.use("/admin", adminRoutes);      
 app.use("/user", userRoutes) 
 
-       
-// Start the server
 const PORT = 3000;
+// Start the server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}/auth/home`));
-  
- 
+   
