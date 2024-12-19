@@ -33,29 +33,29 @@
 
 <body class="min-h-screen bg-black text-white">
   <% const itemsPerPage = 10; %>
-  <div class="flex h-screen">
+  <div class="flex flex-col md:flex-row h-screen">
     <!-- Sidebar -->
-    <div class="w-64 bg-[#111] p-4">
+    <div class="w-full md:w-64 bg-[#111] p-4">
       <%- include('../partials/adminHeader') %>
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 p-8 bg-darker overflow-y-auto">
-      <div class="flex justify-between items-center mb-8">
+    <div class="flex-1 p-2 sm:p-4 md:p-6 lg:p-8 bg-darker overflow-y-auto">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
         <!-- Trigger Add Modal -->
         <button onclick="toggleModal('add')"
-          class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-md transition-colors duration-200">
+          class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-3 py-1.5 rounded-md text-sm transition-colors duration-200">
           Add new Coupon
         </button>
-        <div class="relative">
+        <div class="relative w-full md:w-64">
           <input id="searchInput"
-            class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            class="w-full bg-[#111] border-none text-white placeholder-gray-500 px-3 py-1.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             placeholder="Search for coupons" />
         </div>
       </div>
 
       <!-- Coupons Table -->
-      <div class="bg-[#111] rounded-lg overflow-hidden">
+      <div class="bg-[#111] rounded-lg overflow-hidden overflow-x-auto">
         <table class="w-full">
           <thead>
             <tr class="border-b border-gray-800">
@@ -90,11 +90,11 @@
                 <td class="p-4">
                   <div class="flex gap-2">
                     <button onclick="editCoupon('<%= JSON.stringify(coupon) %>')"
-                      class="bg-green-600 hover:bg-green-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Edit
                     </button>
                     <button onclick="deleteCoupon('<%= coupon._id %>')"
-                      class="bg-red-600 hover:bg-red-700 text-black font-semibold px-3 py-1 rounded-md text-sm transition-colors duration-200">
+                      class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200">
                       Delete
                     </button>
                   </div>
@@ -106,7 +106,7 @@
       </div>
 
       <!-- Pagination -->
-      <div id="pagination" class="flex justify-center gap-2 mt-4">
+      <div id="pagination" class="flex justify-center gap-2 mt-4 flex-wrap">
         <% if (currentPage > 1) { %>
           <a href="?page=<%= currentPage - 1 %>" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors duration-200">Previous</a>
         <% } %>
@@ -121,103 +121,103 @@
   </div>
 
   <!-- Add Coupon Modal -->
-  <div id="addCouponModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
-    <div class="bg-[#111] text-white p-4 rounded-lg w-[500px]">
+  <div id="addCouponModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4">
+    <div class="bg-[#111] text-white p-3 rounded-lg w-full max-w-sm">
       <h2 class="text-lg font-semibold text-orange-500 mb-3">Add Coupon</h2>
       <form id="addCouponForm" action="/admin/coupons" method="post">
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Code</label>
-          <input type="text" name="code" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="text" name="code" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Type</label>
-          <select name="couponType" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+          <select name="couponType" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required>
             <option value="Percentage">Percentage</option>
             <option value="Fixed">Fixed Amount</option>
           </select>
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Value</label>
-          <input type="number" name="couponValue" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" name="couponValue" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Minimum Purchase Amount</label>
-          <input type="number" name="minPurchaseAmount" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" name="minPurchaseAmount" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Start Date</label>
-          <input type="date" name="startDate" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="date" name="startDate" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Expiry Date</label>
-          <input type="date" name="expiryDate" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="date" name="expiryDate" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Total Usage Limit</label>
-          <input type="number" name="totalUsageLimit" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" name="totalUsageLimit" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Status</label>
-          <select name="isActive" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+          <select name="isActive" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
         </div>
         <div class="mt-4 flex justify-between gap-2">
-          <button type="button" onclick="toggleModal('add')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Add Coupon</button>
+          <button type="button" onclick="toggleModal('add')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-md text-sm transition-colors duration-200">Cancel</button>
+          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-3 py-1.5 rounded-md text-sm transition-colors duration-200">Add Coupon</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Edit Coupon Modal -->
-  <div id="editCouponModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center">
-    <div class="bg-[#111] text-white p-4 rounded-lg w-[500px]">
+  <div id="editCouponModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4">
+    <div class="bg-[#111] text-white p-3 rounded-lg w-full max-w-sm">
       <h2 class="text-lg font-semibold text-orange-500 mb-3">Edit Coupon</h2>
       <form id="editCouponForm" action="/admin/coupons" method="put">
         <input type="hidden" id="editCouponId" name="couponId" />
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Code</label>
-          <input type="text" id="editCouponCode" name="code" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="text" id="editCouponCode" name="code" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Type</label>
-          <select id="editCouponType" name="couponType" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+          <select id="editCouponType" name="couponType" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required>
             <option value="Percentage">Percentage</option>
             <option value="Fixed">Fixed Amount</option>
           </select>
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Coupon Value</label>
-          <input type="number" id="editCouponValue" name="couponValue" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" id="editCouponValue" name="couponValue" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Minimum Purchase Amount</label>
-          <input type="number" id="editMinPurchaseAmount" name="minPurchaseAmount" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" id="editMinPurchaseAmount" name="minPurchaseAmount" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Start Date</label>
-          <input type="date" id="editStartDate" name="startDate" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="date" id="editStartDate" name="startDate" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Expiry Date</label>
-          <input type="date" id="editExpiryDate" name="expiryDate" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="date" id="editExpiryDate" name="expiryDate" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Total Usage Limit</label>
-          <input type="number" id="editTotalUsageLimit" name="totalUsageLimit" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required />
+          <input type="number" id="editTotalUsageLimit" name="totalUsageLimit" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required />
         </div>
         <div class="mb-2">
           <label class="block text-sm text-orange-500 mb-1">Status</label>
-          <select id="editIsActive" name="isActive" class="w-full bg-[#222] text-white px-3 py-1.5 rounded text-sm" required>
+          <select id="editIsActive" name="isActive" class="w-full bg-[#222] text-white px-2 py-1 rounded text-sm" required>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
         </div>
         <div class="mt-4 flex justify-between gap-2">
-          <button type="button" onclick="toggleModal('edit')" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors duration-200">Cancel</button>
-          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md transition-colors duration-200">Update Coupon</button>
+          <button type="button" onclick="toggleModal('edit')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1.5 rounded-md text-sm transition-colors duration-200">Cancel</button>
+          <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-3 py-1.5 rounded-md text-sm transition-colors duration-200">Update Coupon</button>
         </div>
       </form>
     </div>

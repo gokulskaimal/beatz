@@ -54,7 +54,7 @@
             </svg>
             Coupons
         </a>
-
+        <% if (user.password){ %>
         <a href="/user/changePassword"
             class="flex items-center gap-3 p-3 rounded-md text-gray-400 hover:bg-darker hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
@@ -64,7 +64,7 @@
             </svg>
             Change Password
         </a>
-
+        <% } %>
         <a href="/auth/logout"
             class="flex items-center gap-3 p-3 rounded-md text-red-500 hover:bg-darker hover:text-red-400 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
