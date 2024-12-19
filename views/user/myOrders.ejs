@@ -197,7 +197,7 @@
                 if (response.ok) {
                     const modalContent = document.getElementById('modalContent');
                     modalContent.innerHTML = `
-                        <p><strong>Order ID:</strong> ${data.order._id}</p>
+                        <p><strong>Order ID: #</strong>${data.order._id.toString().slice(-6)}</p>
                         <p><strong>Order Date:</strong> ${data.formattedDate}</p>
                         <p><strong>Status:</strong> ${data.order.orderStatus}</p>
                         <p><strong>Customer Name:</strong> ${data.order.customer.customerName}</p>

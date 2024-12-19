@@ -67,7 +67,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="gradient-card p-6 rounded-xl">
             <div class="flex justify-between items-start mb-4">
-              <h3 class="text-neon">Total User</h3>
+              <h3 class="text-neon">Total Users</h3>
               <div class="p-2 bg-surface-light rounded-lg">
                 <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke-width="2"/>
@@ -223,17 +223,10 @@
       gradient.addColorStop(0, 'rgba(173, 255, 47, 0.4)');
       gradient.addColorStop(1, 'rgba(173, 255, 47, 0)');
 
-      let labels, values;
-      if (filter === 'yearly') {
-        labels = data.map(item => item.date);
-        values = data.map(item => item.orders);
-      } else {
-        labels = data.map(item => item.date);
-        values = data.map(item => item.orders);
-      }
+      const { labels, values } = processChartData(data, filter);
 
       ordersChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: labels,
           datasets: [{
@@ -301,6 +294,72 @@
           }
         }
       });
+    }
+
+    function processChartData(data, filter) {
+      let labels, values;
+
+      switch (filter) {
+        case 'weekly':
+          ({ labels, values } = processWeeklyData(data));
+          break;
+        case 'monthly':
+          ({ labels, values } = processMonthlyData(data));
+          break;
+        case 'yearly':
+          ({ labels, values } = processYearlyData(data));
+          break;
+        default:
+          labels = data.map(item => item.date);
+          values = data.map(item => item.orders);
+      }
+
+      return { labels, values };
+    }
+
+    function processWeeklyData(data) {
+      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const labels = weekDays;
+      const values = new Array(7).fill(0);
+
+      data.forEach(item => {
+        const date = new Date(item.date);
+        const dayIndex = date.getDay();
+        values[dayIndex] += item.orders;
+      });
+
+      return { labels, values };
+    }
+
+    function processMonthlyData(data) {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const labels = monthNames;
+      const values = new Array(12).fill(0);
+
+      data.forEach(item => {
+        const [year, month] = item.date.split('-');
+        const monthIndex = parseInt(month) - 1;
+        values[monthIndex] += item.orders;
+      });
+
+      return { labels, values };
+    }
+
+    function processYearlyData(data) {
+      const yearlyData = {};
+
+      data.forEach(item => {
+        const [year] = item.date.split('-');
+        if (!yearlyData[year]) {
+          yearlyData[year] = 0;
+        }
+        yearlyData[year] += item.orders;
+      });
+
+      const labels = Object.keys(yearlyData).sort();
+      const values = labels.map(year => yearlyData[year]);
+
+      return { labels, values };
     }
 
     document.addEventListener('DOMContentLoaded', () => {

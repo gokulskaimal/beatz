@@ -113,7 +113,7 @@
                             <% day.orders.forEach(order => { %>
                                 <tr class="border-b border-gray-800">
                                     <td class="p-4"><%= day._id %></td>
-                                    <td class="p-4"><%= order.orderId %></td>
+                                    <td class="p-4">#<%= order.orderId.toString().slice(-6) %></td>
                                     <td class="p-4"><%= order.customerName %></td>
                                     <td class="p-4">₹<%= order.totalAmount.toFixed(2) %></td>
                                     <td class="p-4">₹<%= order.discount.toFixed(2) %></td>
@@ -198,7 +198,7 @@
                 day.orders.map(order => `
                     <tr class="border-b border-gray-800">
                         <td class="p-4">${day._id}</td>
-                        <td class="p-4">${order.orderId}</td>
+                        <td class="p-4">#${order.orderId.toString().slice(-6)}</td>
                         <td class="p-4">${order.customerName}</td>
                         <td class="p-4">₹${order.totalAmount.toFixed(2)}</td>
                         <td class="p-4">₹${order.discount.toFixed(2)}</td>

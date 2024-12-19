@@ -143,7 +143,7 @@ exports.validateCart = async (req, res) => {
   
       // Fetch available coupons
       const availableCoupons = await Coupon.find({
-        expirationDate: { $gt: new Date() },
+        expiryDate: { $gt: new Date() },
         isActive: true,
         $or: [
           { minimumPurchaseAmount: { $lte: totalDiscountPrice } },
@@ -155,7 +155,7 @@ exports.validateCart = async (req, res) => {
       let appliedCoupon = null;
       if (req.session.appliedCoupon) {
         appliedCoupon = await Coupon.findById(req.session.appliedCoupon);
-        if (appliedCoupon && appliedCoupon.isActive && appliedCoupon.expirationDate > new Date()) {
+        if (appliedCoupon && appliedCoupon.isActive && appliedCoupon.expiryDate > new Date()) {
           if (appliedCoupon.discountType === 'percentage') {
             totalDiscountPrice *= (1 - appliedCoupon.discountAmount / 100);
           } else {
@@ -170,7 +170,7 @@ exports.validateCart = async (req, res) => {
   
       res.render("user/checkout", { 
         addresses, 
-        cart: cart.items, 
+        cart: cart, 
         totalPrice, 
         totalDiscountPrice, 
         discount, 
