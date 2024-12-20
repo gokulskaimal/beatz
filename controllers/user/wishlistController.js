@@ -13,7 +13,7 @@ exports.getWishlist = async (req, res) => {
                 cartItemCount = cart.items.length
             } 
         }
-        res.render('user/wishlist', { user: req.user, cartItemCount });
+        res.render('user/wishList', { user: req.user, cartItemCount });
     } catch (error) {
         console.error('Error rendering wishlist page:', error);
         res.status(500).render('error', { message: 'Error loading wishlist page' });

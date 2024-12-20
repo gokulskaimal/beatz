@@ -67,7 +67,7 @@ exports.validateCart = async (req, res) => {
   
       if (!cart || cart.items.length === 0) {
         delete req.session.appliedCoupon;
-        return res.render("user/checkout", { 
+        return res.render("user/checkOut", { 
           addresses, 
           cart: null, 
           totalPrice: 0, 
@@ -168,7 +168,7 @@ exports.validateCart = async (req, res) => {
         }
       }
   
-      res.render("user/checkout", { 
+      res.render("user/checkOut", { 
         addresses, 
         cart: cart, 
         totalPrice, 

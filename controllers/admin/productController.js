@@ -79,7 +79,7 @@ exports.addProduct = [
       discount,
       rating 
     } = req.body;
-    console.log(req.body)
+
     try {
       // Strict validation
       if (!product_name || !description || !category || !price || !stock || !brand || !type || !color || !warranty ||!rating || req.files.length < 3) {
@@ -99,7 +99,6 @@ exports.addProduct = [
       }
       const images = req.files.map(file => file.path);
       const discountPrice = price * (1 - discount / 100);
-      console.log(discountPrice)
       const product = new Product({
         product_name,
         description,
