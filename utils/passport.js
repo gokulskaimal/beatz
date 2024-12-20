@@ -3,6 +3,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/userModel'); // Your User model
 require('dotenv').config();
 
+console.log(process.env.GOOGLE_CALLBACK_URI)
+
 passport.use(
   new GoogleStrategy(
     {
