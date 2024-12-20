@@ -11,7 +11,7 @@ exports.getWishlist = async (req, res) => {
             const cart = await Cart.findOne({ userId: req.user._id });
             if (cart) {
                 cartItemCount = cart.items.length
-            }
+            } 
         }
         res.render('user/wishlist', { user: req.user, cartItemCount });
     } catch (error) {

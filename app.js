@@ -23,7 +23,7 @@ app.use(methodOverride('_method'));
 mongoose.connect(process.env.MONGOURI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error(err));  
- 
+  
  
 // Middleware 
 app.use(express.urlencoded({ extended: true }));
