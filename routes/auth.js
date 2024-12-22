@@ -70,5 +70,7 @@ router.post('/reset-resend-otp', authController.resendOtp);
 router.get('/home',authController.getHome)
 router.get('/allProducts', authController.getAllProducts);
 router.get('/product/:id', authController.getProduct);
-
-module.exports = router;
+router.get('*',(req, res, next) => {
+  res.status(404).render('pages/404', { title: 'Page Not Found' });
+});
+module.exports = router;          

@@ -14,10 +14,10 @@ const walletController = require('../controllers/user/walletController');
 
 
 //Personal Info
-router.get("/home", userAuth.checkSession, userController.getHome);
-router.get("/product/:productId", userAuth.checkSession, userController.getProduct);
+router.get("/home", userController.getHome);
+router.get("/product/:productId", userController.getProduct);
 router.get('/profile', userAuth.checkSession, userController.getProfile);
-router.post('/profile/update', userAuth.checkSession, userController.updateProfile);
+router.post('/profile/update', userAuth.checkSession, userController.updateProfile); 
 
 //Address
 router.get('/address', userAuth.checkSession, addressController.getAddresses);
@@ -37,7 +37,7 @@ router.post('/cart/remove',userAuth.checkSession,cartController.removeFromCart)
 router.post('/validate-cart',userAuth.checkSession,checkoutController.validateCart)
 
 //View All
-router.get('/allProducts',userAuth.checkSession,allProductsController.getAllProducts)
+router.get('/allProducts',allProductsController.getAllProducts)
 
 // Checkout routes
 router.get('/checkout', userAuth.checkSession, checkoutController.getCheckout);
@@ -72,6 +72,8 @@ router.post('/wishlist/toggle',  userAuth.checkSession, wishlistController.toggl
 //coupons
 router.get('/coupons', userAuth.checkSession, couponsController.getCoupons)
 
-
+router.get('*',(req, res, next) => {
+    res.status(404).render('pages/404', { title: 'Page Not Found' });
+  });
 
 module.exports = router;

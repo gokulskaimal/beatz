@@ -293,11 +293,9 @@ exports.cancelOrderItem = async (req, res) => {
             return res.status(400).json({ message: 'This item cannot be cancelled' });
         }
 
+        // Mark item as cancelled
         item.status = 'Cancelled';
 
-        order.payment.totalAmount -= item.price * item.quantity;
-        order.payment.discountPrice -= item.subtotal;
-        order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
         // Restore product stock
         await Product.findByIdAndUpdate(item.productId, {
             $inc: { stock: item.quantity }
@@ -306,31 +304,35 @@ exports.cancelOrderItem = async (req, res) => {
         // Calculate refund amount
         let refundAmount = item.subtotal;
 
-        // If there's a coupon applied, calculate the proportional discount
-        if (order.payment.appliedCoupon) {
-            const orderTotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
-            const itemTotal = item.subtotal;
-            const discountRatio = (order.payment.couponDiscount / orderTotal) * 100;
-            const discountValue = (orderTotal * discountRatio) / 100;
-            const discountProportion = (discountValue / orderTotal) * itemTotal;
-            refundAmount = item.subtotal - discountProportion;
+        if (order.payment.appliedCoupon && order.payment.couponDiscount > 0) {
+            const remainingTotal = order.items
+                .filter(i => !['Cancelled', 'Returned'].includes(i.status))
+                .reduce((sum, i) => sum + i.subtotal, 0);
 
-            // Check if this is the last item being returned
-            const activeItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+            const discountRatio = order.payment.couponDiscount / (remainingTotal + item.subtotal);
+            const discountProportion = discountRatio * item.subtotal;
+            refundAmount -= discountProportion;
+
+            // If this is the last active item
+            const activeItems = order.items.filter(
+                i => !['Cancelled', 'Returned'].includes(i.status)
+            );
             if (activeItems.length === 1 && activeItems[0]._id.toString() === itemId) {
-                // This is the last item, include any remaining coupon discount
-                const remainingCouponDiscount = order.payment.couponDiscount - discountProportion;
-                refundAmount -= remainingCouponDiscount;
+                refundAmount += discountProportion;
             }
         }
 
-        // Process refund
-        if (order.payment.paymentMethod !== 'Cash On Delivery' && order.payment.paymentStatus === 'Completed') {
+        // Process refund if not Cash On Delivery
+        if (
+            order.payment.paymentMethod !== 'Cash On Delivery' &&
+            order.payment.paymentStatus !== 'Pending' &&
+            order.payment.paymentStatus !== 'Failed'
+        ) {
             await Wallet.findOneAndUpdate(
                 { user: order.customer.customerId },
-                { 
+                {
                     $inc: { balance: refundAmount },
-                    $push: { 
+                    $push: {
                         transactions: {
                             amount: refundAmount,
                             type: 'credit',
@@ -343,6 +345,23 @@ exports.cancelOrderItem = async (req, res) => {
             );
         }
 
+        // Recalculate payment details
+        const remainingItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+        order.payment.totalAmount = remainingItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+        order.payment.discountPrice = remainingItems.reduce((sum, i) => sum + i.subtotal, 0);
+
+        if (order.payment.appliedCoupon && order.payment.couponDiscount > 0) {
+            const remainingTotal = remainingItems.reduce((sum, i) => sum + i.subtotal, 0);
+            order.payment.couponDiscount = remainingTotal > 0
+                ? (order.payment.couponDiscount / (remainingTotal + item.subtotal)) * remainingTotal
+                : 0;
+        } else {
+            order.payment.couponDiscount = 0;
+        }
+
+        order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
+        order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
+
         // Update order status
         const allCancelled = order.items.every(item => item.status === 'Cancelled');
         if (allCancelled) {
@@ -354,7 +373,8 @@ exports.cancelOrderItem = async (req, res) => {
                 order.payment.paymentStatus = 'Partially Refunded';
             }
         }
-        order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
+
+        // Save changes
         await order.save();
 
         res.json({ message: 'Item cancelled successfully', order });
@@ -363,6 +383,7 @@ exports.cancelOrderItem = async (req, res) => {
         res.status(500).json({ message: 'Failed to cancel order item' });
     }
 };
+
 
 exports.getWalletBalance = async (req, res) => {
     try {
@@ -548,4 +569,3 @@ exports.generateInvoice = async (req, res) => {
 
 
 module.exports = exports;
-

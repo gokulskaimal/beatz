@@ -28,7 +28,7 @@ const checkSession = async (req, res, next) => {
 };
 
 // Middleware function to check if the user is already logged in
-const isLogin = (req, res, next) => {
+const isLogin = (req, res, next) => { 
     if (req.session.user) {
         res.redirect("/user/home");
     } else {
@@ -39,4 +39,3 @@ const isLogin = (req, res, next) => {
 
 // Export the middleware functions for use in other parts of the application
 module.exports = { checkSession, isLogin };
-

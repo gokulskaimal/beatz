@@ -10,8 +10,8 @@ exports.getWishlist = async (req, res) => {
         if (req.user) {
             const cart = await Cart.findOne({ userId: req.user._id });
             if (cart) {
-                cartItemCount = cart.items.length
-            } 
+                cartItemCount = cart.items.length;
+            }
         }
         res.render('user/wishList', { user: req.user, cartItemCount });
     } catch (error) {
@@ -25,14 +25,13 @@ exports.getWishlistData = async (req, res) => {
         const wishlistItems = await Wishlist.find({ userId: req.user._id })
             .populate('productId', 'product_name price discountPrice image stock rating description category createdAt')
             .lean();
-        
+
         const currentDate = new Date();
         const sevenDaysAgo = new Date(currentDate - 7 * 24 * 60 * 60 * 1000);
-        
-        // Fetch additional offers for products
+
         const productIds = wishlistItems.map(item => item.productId._id);
         const categoryIds = wishlistItems.map(item => item.productId.category);
-        
+
         const additionalOffers = await Offer.find({
             $or: [
                 { applicableProduct: { $in: productIds } },
@@ -44,13 +43,13 @@ exports.getWishlistData = async (req, res) => {
         });
 
         const transformedWishlist = wishlistItems.map(item => {
-            const productOffer = additionalOffers.find(offer => 
+            const productOffer = additionalOffers.find(offer =>
                 offer.applicableProduct && offer.applicableProduct.equals(item.productId._id)
             );
-            const categoryOffer = additionalOffers.find(offer => 
+            const categoryOffer = additionalOffers.find(offer =>
                 offer.applicableCategory && offer.applicableCategory.equals(item.productId.category)
             );
-            
+
             let bestDiscount = 0;
             let bestOfferSource = null;
 
@@ -98,7 +97,7 @@ exports.getWishlistData = async (req, res) => {
         if (req.user) {
             const cart = await Cart.findOne({ userId: req.user._id });
             if (cart) {
-                cartItemCount = cart.items.length
+                cartItemCount = cart.items.length;
             }
         }
 
@@ -112,7 +111,9 @@ exports.getWishlistData = async (req, res) => {
 exports.addToWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+        }
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
@@ -132,7 +133,7 @@ exports.addToWishlist = async (req, res) => {
         if (req.user) {
             const cart = await Cart.findOne({ userId: req.user._id });
             if (cart) {
-                cartItemCount = cart.items.length
+                cartItemCount = cart.items.length;
             }
         }
 
@@ -162,6 +163,10 @@ exports.removeFromWishlist = async (req, res) => {
 exports.toggleWishlistItem = async (req, res) => {
     try {
         const { productId } = req.body;
+
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+        }
 
         const existingItem = await Wishlist.findOne({ userId: req.user._id, productId });
 

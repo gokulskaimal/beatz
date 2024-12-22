@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        h1 {
+            font-size: 8rem;
+            margin: 0;
+            color: #ff4757;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.7);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            color: #5352ed;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .url {
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #5352ed;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        a:hover {
+            background-color: #ff4757;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.5);
+        }
+
+        .stars {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: white;
+            z-index: -1;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 6rem; }
+            h2 { font-size: 2rem; }
+            p { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>Oops! It seems you've ventured into the dark corners of our digital universe. The page you're looking for has vanished into the void.</p>
+        <a href="/">Return to Home</a>
+    </div>
+    <script>
+        // Create starry background
+        for (let i = 0; i < 100; i++) {
+            let star = document.createElement('div');
+            star.className = 'stars';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animation = `twinkle ${Math.random() * 5 + 5}s linear infinite`;
+            document.body.appendChild(star);
+        }
+
+        // Twinkle animation
+        let style = document.createElement('style');
+        style.textContent = `
+            @keyframes twinkle {
+                0% { opacity: 0; }
+                50% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@ exports.recalculateCart = async (cart) => {
 
         if (!product || !product.category) {
             console.error(`Product not found or inactive for id: ${item.product}`);
-            continue;
+            continue; 
         }
 
         let appliedOfferType = null;
@@ -135,6 +135,7 @@ exports.getCart = async (req, res) => {
 };
 
 exports.addToCart = async (req, res) => {
+
     try {
         const { productId, quantity } = req.body;
         const userId = req.session.user?._id;
@@ -169,7 +170,7 @@ exports.addToCart = async (req, res) => {
         if (itemIndex > -1) {
             const currentQuantity = cart.items[itemIndex].quantity;
             const newQuantity = currentQuantity + quantity;
-            if(newQuantity > product.stock){
+            if (newQuantity > product.stock) {
                 return res.status(400).json({ status: 'error', message: 'Product not available in requested quantity' });
             }
             if (newQuantity > 4) {
@@ -204,7 +205,7 @@ exports.addToCart = async (req, res) => {
 
         res.status(200).json({ status: 'success', message: 'Product added to cart successfully!', cartItemCount });
     } catch (err) {
-        console.error('Error in addToCart:', err);
+        console.error('Error adding to cart:', err);
         res.status(500).json({ status: 'error', message: 'An error occurred while adding to cart.' });
     }
 };
@@ -296,5 +297,4 @@ exports.updateQuantity = async (req, res) => {
     }
 };
 
-module.exports = exports;
-
+module.exports = exports;  

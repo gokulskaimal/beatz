@@ -77,7 +77,9 @@ router.get('/sales-report', adminAuth.checkSession, salesController.renderSalesR
 router.get('/sales-report/data', adminAuth.checkSession, salesController.getSalesReport);
 router.get('/sales-report/download/pdf', adminAuth.checkSession, salesController.downloadPdfReport);
 router.get('/sales-report/download/excel', adminAuth.checkSession, salesController.downloadExcelReport);
-
+router.get('*',(req, res, next) => {
+    res.status(404).render('pages/404', { title: 'Page Not Found' });
+  });
+  
 
 module.exports = router;
-

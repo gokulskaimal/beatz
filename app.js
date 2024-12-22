@@ -51,8 +51,14 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Routes     
 app.use('/auth', authRoutes); 
-app.use("/admin", adminRoutes);      
-app.use("/user", userRoutes) 
+app.use('/admin', adminRoutes);      
+app.use('/user', userRoutes),
+app.use('/',(req, res) => {
+ res.redirect('/user/home')
+});
+app.use((req, res, next) => {
+  res.status(404).render('pages/404', { title: 'Page Not Found' });
+});
 
 const PORT = 3000;
 // Start the server

@@ -113,34 +113,18 @@ exports.handleReturnRequest = async (req, res) => {
             // Calculate refund amount
             let refundAmount = item.subtotal;
 
-
-            order.payment.totalAmount -= item.price * item.quantity;
-            order.payment.discountPrice -= item.subtotal;
-            order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
-            // If there's a coupon applied, calculate the proportional discount
-
             if (order.payment.appliedCoupon) {
-                const orderTotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
-
-                const itemTotal = item.subtotal;
-
-                const discountRatio = (order.payment.couponDiscount / orderTotal) * 100
-                const discountValue = (orderTotal * discountRatio) / 100
-
-                const discountProportion = (discountValue / orderTotal) * itemTotal
-
-                // const itemCouponDiscount = item.subtotal * discountRatio;
-                refundAmount = item.subtotal - discountProportion;
-
-
-                // Check if this is the last item being returned
                 const activeItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+                const remainingTotal = activeItems.reduce((sum, i) => sum + i.subtotal, 0);
+
+                const discountRatio = order.payment.couponDiscount / (remainingTotal + item.subtotal);
+                const discountProportion = discountRatio * item.subtotal;
+
+                refundAmount -= discountProportion;
+
+                // If this is the last active item being returned
                 if (activeItems.length === 1 && activeItems[0]._id.toString() === itemId) {
-                    // This is the last item, include any remaining coupon discount
-                    const remainingCouponDiscount = order.payment.couponDiscount - itemCouponDiscount;
-
-                    refundAmount -= remainingCouponDiscount;
-
+                    refundAmount += discountProportion;
                 }
             }
 
@@ -161,23 +145,25 @@ exports.handleReturnRequest = async (req, res) => {
                 { upsert: true }
             );
 
-            // Update order totals
-            // order.payment.totalAmount -= refundAmount;
-            // console.log("order.payment.totalAmount",order.payment.totalAmount)
-            // order.payment.discountPrice -= item.subtotal;
-            // console.log("order.payment.discountPrice",order.payment.discountPrice)
-            // if (order.payment.appliedCoupon) {
-            //     const newCouponDiscount = order.payment.couponDiscount * (1 - (item.subtotal / order.payment.totalAmount));
-            //     console.log("newCouponDiscount",newCouponDiscount)
-            //     order.payment.couponDiscount = newCouponDiscount;
-            //     console.log("order.payment.couponDiscount",order.payment.couponDiscount)
-            // }
+            // Recalculate payment details
+            const activeItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+            const remainingTotal = activeItems.reduce((sum, i) => sum + i.subtotal, 0);
+
+            order.payment.totalAmount = activeItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+            order.payment.discountPrice = remainingTotal;
+
+            if (order.payment.appliedCoupon) {
+                order.payment.couponDiscount = remainingTotal > 0
+                    ? (order.payment.couponDiscount / (remainingTotal + item.subtotal)) * remainingTotal
+                    : 0;
+            } else {
+                order.payment.couponDiscount = 0;
+            }
+
+            order.payment.discount = order.payment.totalAmount - order.payment.discountPrice;
+            order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
 
             // Update payment status
-
-
-
-            order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
             if (order.payment.totalAmount <= 0) {
                 order.payment.paymentStatus = 'Refunded';
             } else {
@@ -207,6 +193,7 @@ exports.handleReturnRequest = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to handle return request' });
     }
 };
+
 
 module.exports = exports;
 
