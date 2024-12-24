@@ -17,6 +17,71 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
+
+
+
+const validateProductInput = (data) => {
+  const errors = [];
+
+  // Validate product name (only letters and spaces, 3-50 characters)
+  if (!/^[a-zA-Z\s]{3,50}$/.test(data.product_name)) {
+    errors.push('Product name must be 3-50 characters long and contain only letters and spaces.');
+  }
+
+  // Validate description (minimum 10 characters)
+  if (!data.description || data.description.length < 10) {
+    errors.push('Description must be at least 10 characters long.');
+  }
+
+  // Validate category (valid MongoDB ObjectId)
+  if (!mongoose.Types.ObjectId.isValid(data.category)) {
+    errors.push('Invalid category ID.');
+  }
+
+  // Validate price (positive number with up to 2 decimal places)
+  if (!/^\d+(\.\d{1,2})?$/.test(data.price) || parseFloat(data.price) <= 0) {
+    errors.push('Price must be a positive number with up to 2 decimal places.');
+  }
+
+  // Validate stock (non-negative integer)
+  if (!/^\d+$/.test(data.stock) || parseInt(data.stock) < 0) {
+    errors.push('Stock must be a non-negative integer.');
+  }
+
+  // Validate brand (letters and spaces, 2-30 characters)
+  if (!/^[a-zA-Z\s]{2,30}$/.test(data.brand)) {
+    errors.push('Brand must be 2-30 characters long and contain only letters and spaces.');
+  }
+
+  // Validate type (alphanumeric, 3-20 characters)
+  if (!/^[a-zA-Z0-9\s]{3,20}$/.test(data.type)) {
+    errors.push('Type must be 3-20 characters long and alphanumeric.');
+  }
+
+  // Validate color (letters only, 3-20 characters)
+  if (!/^[a-zA-Z\s]{3,20}$/.test(data.color)) {
+    errors.push('Color must be 3-20 characters long and contain only letters.');
+  }
+
+  // Validate warranty (positive integer)
+  if (!/^\d+$/.test(data.warranty) || parseInt(data.warranty) <= 0) {
+    errors.push('Warranty must be a positive integer.');
+  }
+
+  // Validate discount (0-100%)
+  if (!/^\d+(\.\d{1,2})?$/.test(data.discount) || data.discount < 0 || data.discount > 100) {
+    errors.push('Discount must be a number between 0 and 100.');
+  }
+
+  // Validate rating (0-5, up to 1 decimal place)
+  if (!/^[0-5](\.\d{1})?$/.test(data.rating) || data.rating < 0 || data.rating > 5) {
+    errors.push('Rating must be a number between 0 and 5 with up to 1 decimal place.');
+  }
+
+  return errors;
+};
+
+
 // Get all products with pagination
 exports.getAllProducts = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -81,6 +146,10 @@ exports.addProduct = [
     } = req.body;
 
     try {
+      const errors = validateProductInput(req.body);
+      if (errors.length > 0) {
+        return res.status(400).json({ success: false, message: 'Validation failed', errors });
+      }
       // Strict validation
       if (!product_name || !description || !category || !price || !stock || !brand || !type || !color || !warranty ||!rating || req.files.length < 3) {
         return res.status(400).json({ success: false, message: 'All fields are required and at least 3 images must be uploaded.' });
@@ -144,7 +213,10 @@ exports.updateProduct = [
     } = req.body;
 
     try {
-      // Strict validation
+      const errors = validateProductInput(req.body);
+      if (errors.length > 0) {
+        return res.status(400).json({ success: false, message: 'Validation failed', errors });
+      }
       if (!product_name || !description || !category || !price || !stock || !brand || !type || !color || !warranty ||!rating) {
         return res.status(400).json({ success: false, message: 'All fields are required.' });
       }

@@ -39,119 +39,118 @@
         </div>
 
         <div class="flex-1 mt-16 ml-64">
-                    <div class="rounded-lg border border-none p-6 h-full bg-darker">
-                        <h1 class="text-2xl font-bold text-gold mb-8">Change Password</h1>
+            <div class="rounded-lg border border-none p-6 h-full bg-darker">
+                <h1 class="text-2xl font-bold text-gold mb-8">Change Password</h1>
 
-                        <form id="changePasswordForm" action="/user/change-password" method="POST" class="space-y-4">
-                            <div class="space-y-2">
-                                <label for="currentPassword" class="block text-sm text-gray-400">Current
-                                    Password</label>
-                                <input type="password" id="currentPassword" name="currentPassword" required
-                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
-                            </div>
-
-                            <div class="space-y-2">
-                                <label for="newPassword" class="block text-sm text-gray-400">New Password</label>
-                                <input type="password" id="newPassword" name="newPassword" required
-                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
-                            </div>
-
-                            <div class="space-y-2">
-                                <label for="confirmPassword" class="block text-sm text-gray-400">Confirm New
-                                    Password</label>
-                                <input type="password" id="confirmPassword" name="confirmPassword" required
-                                    class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
-                            </div>
-
-                            <button type="submit"
-                                class="w-full bg-black border border-none text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
-                                Change Password
-                            </button>
-                        </form>
+                <form id="changePasswordForm" action="/user/change-password" method="POST" class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="currentPassword" class="block text-sm text-gray-400">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required
+                            class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
                     </div>
-                </div>
+
+                    <div class="space-y-2">
+                        <label for="newPassword" class="block text-sm text-gray-400">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" required
+                            class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md"
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                            title="Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="confirmPassword" class="block text-sm text-gray-400">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required
+                            class="w-full bg-gray-900 border-b border-gray-700 px-3 py-2 focus:border-gold focus:outline-none text-white rounded-md">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-black border border-none text-gold py-2 rounded-md hover:bg-gold hover:text-black transition-colors">
+                        Change Password
+                    </button>
+                </form>
+            </div>
         </div>
+    </div>
 
-        <% if (message) { %>
-            <script>
+    <% if (message) { %>
+        <script>
+            Swal.fire({
+                icon: '<%= message.includes("successfully") ? "success" : "error" %>',
+                title: '<%= message %>',
+            });
+        </script>
+    <% } %>
+
+    <script>
+        const changePasswordForm = document.getElementById('changePasswordForm');
+
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            if (formData.get('newPassword') !== formData.get('confirmPassword')) {
                 Swal.fire({
-                    icon: '<%= message.includes("successfully") ? "success" : "error" %>',
-                    title: '<%= message %>',
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'New password and confirmation do not match.',
                 });
-            </script>
-            <% } %>
-                <script>
-                    const changePasswordForm = document.getElementById('changePasswordForm');
+                return;
+            }
 
-                    changePasswordForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.target);
+            try {
+                const response = await fetch('/user/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData)),
+                });
+                const result = await response.json();
 
-                        if (formData.get('newPassword') !== formData.get('confirmPassword')) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'New password and confirmation do not match.',
-                            });
-                            return;
-                        }
-
-                        try {
-                            const response = await fetch('/user/changePassword', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(Object.fromEntries(formData)),
-                            });
-                            const result = await response.json();
-
-                            if (result.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Success',
-                                    text: 'Your password has been changed successfully.',
-                                }).then(() => {
-                                    window.location.href = '/user/changePassword';
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: result.message || 'Failed to change password. Please try again.',
-                                });
-                            }
-                        } catch (error) {
-                            console.error('Error:', error);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'An unexpected error occurred. Please try again.',
-                            });
-                        }
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Your password has been changed successfully.',
+                    }).then(() => {
+                        window.location.href = '/user/change-password';
                     });
-                    document.addEventListener('DOMContentLoaded', () => {
-                        const userIcon = document.getElementById('user-icon');
-                        const userDropdown = document.getElementById('user-dropdown');
-
-                        // Toggle the dropdown menu visibility on click
-                        userIcon.addEventListener('click', () => {
-                            userDropdown.classList.toggle('hidden');
-                        }); 
-
-                        // Hide the dropdown when clicking outside
-                        document.addEventListener('click', (e) => {
-                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
-                                userDropdown.classList.add('hidden');
-                            }
-                        });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Failed to change password. Please try again.',
                     });
-                    
-                </script>
-                <footer class=""fixed bottom-0 left-0 right-0 bg-darker z-50">
-                    
-                </footer>
-                
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userIcon = document.getElementById('user-icon');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            // Toggle the dropdown menu visibility on click
+            userIcon.addEventListener('click', () => {
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Hide the dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+    <footer class="fixed bottom-0 left-0 right-0 bg-darker z-50">
+    </footer>
 </body>
 
 </html>

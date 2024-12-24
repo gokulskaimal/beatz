@@ -592,9 +592,10 @@
           });
         } else {
           Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: result.message || 'Failed to save the product.',
+          title: 'Validation Errors',
+          icon: 'error',
+          html: result.errors.map(err => `<p>${err}</p>`).join(''),
+          confirmButtonText: 'OK'
           });
         }
       } catch (error) {

@@ -1,5 +1,30 @@
 const Category = require("../../models/categoryModel");
 
+
+const validateCategoryInput = (data) => {
+  const errors = [];
+
+  // Validate name (only letters and spaces, 3-50 characters)
+  if (!/^[a-zA-Z\s]{3,50}$/.test(data.name)) {
+    errors.push('Category name must be 3-50 characters long and contain only letters and spaces.');
+  }
+
+  // Validate description (minimum 10 characters)
+  if (!data.description || data.description.length < 10) {
+    errors.push('Description must be at least 10 characters long.');
+  }
+
+  // Validate parent category (if provided, must be a valid MongoDB ObjectId)
+  if (data.parentCategory && !mongoose.Types.ObjectId.isValid(data.parentCategory)) {
+    errors.push('Invalid parent category ID.');
+  }
+
+  return errors;
+};
+
+
+
+
 exports.getCategories = async (req, res) => {
   try {
     const { skip, limit, currentPage } = req.pagination;
@@ -21,6 +46,10 @@ exports.getCategories = async (req, res) => {
 exports.addCategory = async (req, res) => {
   try {
     const { name, description, status } = req.body;
+    const errors = validateCategoryInput(req.body);
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, message: "Validation failed", errors });
+    }
 
     if (!name || !status) {
       return res.status(400).json({ success: false, message: "Category name and status are required" });
@@ -97,6 +126,10 @@ exports.editCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, status } = req.body;
+    const errors = validateCategoryInput(req.body);
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, message: "Validation failed", errors });
+    }
 
     if (!name || !status) {
       return res.status(400).json({ success: false, message: "Category name and status are required" });
