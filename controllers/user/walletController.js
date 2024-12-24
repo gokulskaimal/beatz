@@ -9,7 +9,7 @@ exports.getWallet = async (req, res) => {
         if (!wallet) {
             const newWallet = new Wallet({ user: userId });
             await newWallet.save();
-            return res.render('user/wallet', { wallet: newWallet });
+            return res.render('user/wallet', { wallet: newWallet,user:req.user,cartItemCount });
         }
         let cartItemCount = 0;
         if (req.user) {
