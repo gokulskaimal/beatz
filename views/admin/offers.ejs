@@ -126,11 +126,13 @@
                 <div>
                     <label class="block mb-1 text-xs">Offer Title</label>
                     <input type="text" name="title" required
-                        class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                        pattern="^[a-zA-Z0-9\s]{3,50}$"
+                        title="Title must be 3-50 characters long and contain only letters, numbers, and spaces">
                 </div>
                 <div>
                     <label class="block mb-1 text-xs">Discount Percentage</label>
-                    <input type="number" name="discountPercentage" required min="0" max="100"
+                    <input type="number" name="discountPercentage" required min="0" max="100" step="1"
                         class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm">
                 </div>
                 <div>
@@ -177,11 +179,13 @@
                 <div>
                     <label class="block mb-1 text-xs">Offer Title</label>
                     <input type="text" name="title" id="editOfferTitle" required
-                        class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm">
+                        class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                        pattern="^[a-zA-Z0-9\s]{3,50}$"
+                        title="Title must be 3-50 characters long and contain only letters, numbers, and spaces">
                 </div>
                 <div>
                     <label class="block mb-1 text-xs">Discount Percentage</label>
-                    <input type="number" name="discountPercentage" id="editOfferDiscount" required min="0" max="100"
+                    <input type="number" name="discountPercentage" id="editOfferDiscount" required min="0" max="100" step="1"
                         class="w-full bg-[#222] text-white px-2 py-1 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm">
                 </div>
                 <div>
@@ -284,26 +288,26 @@
 
         function validateOfferForm(formData) {
             const title = formData.get('title').trim();
-            const discountPercentage = formData.get('discountPercentage');
+            const discountPercentage = parseInt(formData.get('discountPercentage'));
             const offerType = formData.get('offerType');
             const applicableItem = formData.get('applicableItem');
             const startDate = new Date(formData.get('startDate'));
             const endDate = new Date(formData.get('endDate'));
 
-            if (!title || title.length < 3 || title.length > 50) {
+            if (!title || title.length < 3 || title.length > 50 || !/^[a-zA-Z0-9\s]+$/.test(title)) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Validation Error',
-                    text: 'Offer title must be between 3 and 50 characters.',
+                    text: 'Offer title must be between 3 and 50 characters and contain only letters, numbers, and spaces.',
                 });
                 return false;
             }
 
-            if (!discountPercentage || discountPercentage < 0 || discountPercentage > 100) {
+            if (isNaN(discountPercentage) || discountPercentage < 0 || discountPercentage > 100 || !Number.isInteger(discountPercentage)) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Validation Error',
-                    text: 'Discount percentage must be between 0 and 100.',
+                    text: 'Discount percentage must be a whole number between 0 and 100.',
                 });
                 return false;
             }
@@ -322,6 +326,18 @@
                     icon: 'error',
                     title: 'Validation Error',
                     text: 'Please ensure the start date is before the end date.',
+                });
+                return false;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (startDate < today) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Start date must be today or in the future.',
                 });
                 return false;
             }
@@ -356,10 +372,14 @@
                         location.reload();
                     });
                 } else {
+                    let errorMessage = result.message;
+                    if (result.errors && result.errors.length > 0) {
+                        errorMessage = result.errors.map(err => err.msg).join('\n');
+                    }
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: result.message,
+                        text: errorMessage,
                     });
                 }
             } catch (error) {
@@ -399,10 +419,14 @@
                         location.reload();
                     });
                 } else {
+                    let errorMessage = result.message;
+                    if (result.errors && result.errors.length > 0) {
+                        errorMessage = result.errors.map(err => err.msg).join('\n');
+                    }
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: result.message,
+                        text: errorMessage,
                     });
                 }
             } catch (error) {

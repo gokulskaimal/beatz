@@ -25,7 +25,7 @@
 <body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
     <%- include('../partials/header', { user, cartItemCount }) %>
     <main class="flex-grow container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6">All Products</h1>
+        <h1 class="text-3xl font-bold mb-6 text-yellow-500">All Products</h1>
         <nav class="mb-6">
             <ol class="list-none p-0 inline-flex">
                 <li class="flex items-center text-gray-400">
@@ -362,61 +362,75 @@
             attachPaginationListeners();
         });
 
-        function toggleWishlist(productId) {
-            fetch('/user/wishlist/toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ productId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: data.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    // Update the wishlist icon
-                    const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
-                    if (wishlistBtn) {
-                        wishlistBtn.querySelector('svg').classList.toggle('text-red-500');
-                        wishlistBtn.querySelector('svg').classList.toggle('fill-current');
-                    }
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: data.message,
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong!',
-                });
-            });
-        }
+        async function toggleWishlist(productId) {
+                    try {
+                        const response = await fetch('/user/wishlist/toggle', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({ productId })
+                        });
 
-        function initializeWishlistButtons() {
-            const wishlistButtons = document.querySelectorAll('.wishlist-btn');
-            wishlistButtons.forEach(button => {
-                const productId = button.dataset.productId;
-                const isInWishlist = button.dataset.inWishlist === 'true';
-                const svg = button.querySelector('svg');
-                if (isInWishlist) {
-                    svg.classList.add('text-red-500', 'fill-current');
-                } else {
-                    svg.classList.remove('text-red-500', 'fill-current');
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const result = await response.json();
+                            console.log('Response:', result); // Add this line to log the response
+
+                            if (response.ok) {
+                                if (result.success) {
+                                    const icon = result.message.includes('removed') ? 'info' : 'success';
+                                    Swal.fire({
+                                        icon: icon,
+                                        title: 'Success!',
+                                        text: result.message,
+                                    });
+                                    updateWishlistButton(productId, result.message.includes('removed'));
+                                } else if (result.message === 'User not authenticated') {
+                                    window.location.href = '/auth/login';
+                                } else {
+                                    throw new Error(result.message);
+                                }
+                            } else {
+                                throw new Error(result.message || 'Failed to toggle wishlist');
+                            }
+                        } else {
+                            // If the response is not JSON, assume it's an HTML response and redirect to login
+                            window.location.href = '/auth/login';
+                        }
+                    } catch (error) {
+                        console.error('Error toggling wishlist:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: error.message || 'An unexpected error occurred.',
+                        });
+                    }
                 }
-            });
-        }
+                function updateWishlistButton(productId, isRemoved) {
+                    const button = document.querySelector(`.wishlist-btn[data-product-id="${productId}"]`);
+                    const svg = button.querySelector('svg');
+                    if (isRemoved) {
+                        svg.classList.remove('text-red-500', 'fill-current');
+                    } else {
+                        svg.classList.add('text-red-500', 'fill-current');
+                    }
+                }
+
+                function initializeWishlistButtons() {
+                    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+                    wishlistButtons.forEach(button => {
+                        const productId = button.dataset.productId;
+                        const isInWishlist = button.dataset.inWishlist === 'true';
+                        const svg = button.querySelector('svg');
+                        if (isInWishlist) {
+                            svg.classList.add('text-red-500', 'fill-current');
+                        } else {
+                            svg.classList.remove('text-red-500', 'fill-current');
+                        }
+                    });
+                }
 
         document.addEventListener('DOMContentLoaded', () => {
             const userIcon = document.getElementById('user-icon');
@@ -426,7 +440,7 @@
             userIcon.addEventListener('click', () => {
                 userDropdown.classList.toggle('hidden');
             });
-
+            initializeWishlistButtons();
             // Hide the dropdown when clicking outside
             document.addEventListener('click', (e) => {
                 if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {

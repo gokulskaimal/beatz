@@ -142,6 +142,7 @@ exports.getSalesReport = async (req, res) => {
     }
 };
 
+
 exports.downloadPdfReport = async (req, res) => {
     try {
         const { range, startDate, endDate } = req.query;
@@ -161,7 +162,7 @@ exports.downloadPdfReport = async (req, res) => {
                     totalOrders: { $sum: 1 },
                     totalDiscount: { $sum: '$payment.discount' },
                     totalCouponDiscount: { $sum: '$payment.couponDiscount' },
-                    netAmount: { $sum: { $subtract: ['$payment.totalAmount', { $add: ['$payment.discount'] }] } },
+                    netAmount: { $sum: { $subtract: ['$payment.totalAmount', { $add: ['$payment.discount', '$payment.couponDiscount'] }] } },
                     orders: {
                         $push: {
                             orderId: '$_id',
@@ -169,8 +170,7 @@ exports.downloadPdfReport = async (req, res) => {
                             totalAmount: '$payment.totalAmount',
                             discount: '$payment.discount',
                             couponDiscount: '$payment.couponDiscount',
-                            paymentMethod: '$payment.paymentMethod',
-                            paymentStatus: '$payment.paymentStatus'
+                            paymentMethod: '$payment.paymentMethod'
                         }
                     }
                 }
@@ -178,31 +178,28 @@ exports.downloadPdfReport = async (req, res) => {
             { $sort: { _id: -1 } }
         ]);
 
-        const doc = new PDFDocument();
+        const doc = new PDFDocument({ margin: 30, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=sales_report.pdf');
 
         doc.pipe(res);
 
-        doc.fontSize(18).text('Sales Report', { align: 'center' });
+        doc.fontSize(14).text('Sales Report', { align: 'center' });
         doc.moveDown();
-        doc.fontSize(12).text(`Date Range: ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}`, { align: 'center' });
+        doc.fontSize(10).text(`Date Range: ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}`, { align: 'center' });
         doc.moveDown();
 
-        const tableTop = 150;
-        const tableLeft = 50;
+        const tableTop = 100;
+        const tableLeft = 30;
         const rowHeight = 20;
-        const colWidth = 70;
+        const colWidths = [60, 60, 80, 60, 60, 80, 60, 60];
 
         // Table headers
         doc.font('Helvetica-Bold');
-        doc.text('Date', tableLeft, tableTop);
-        doc.text('Order ID', tableLeft + colWidth, tableTop);
-        doc.text('Customer', tableLeft + colWidth * 2, tableTop);
-        doc.text('Total', tableLeft + colWidth * 3, tableTop);
-        doc.text('Net Amount', tableLeft + colWidth * 4, tableTop);
-        doc.text('Payment', tableLeft + colWidth * 5, tableTop);
-        doc.text('Status', tableLeft + colWidth * 6, tableTop);
+        const headers = ['Date', 'Order ID', 'Customer', 'Total', 'Discount', 'Coupon Disc', 'Net Amount', 'Payment'];
+        headers.forEach((header, i) => {
+            doc.text(header, tableLeft + colWidths.slice(0, i).reduce((a, b) => a + b, 0), tableTop);
+        });
 
         // Table rows
         doc.font('Helvetica');
@@ -210,14 +207,20 @@ exports.downloadPdfReport = async (req, res) => {
 
         salesData.forEach(day => {
             day.orders.forEach(order => {
-                const netAmount = order.totalAmount - order.discount;
-                doc.text(day._id, tableLeft, currentTop);
-                doc.text(order.orderId.toString().slice(-6), tableLeft + colWidth, currentTop);
-                doc.text(order.customerName.slice(0, 10), tableLeft + colWidth * 2, currentTop);
-                doc.text(order.totalAmount.toFixed(2), tableLeft + colWidth * 3, currentTop);
-                doc.text(netAmount.toFixed(2), tableLeft + colWidth * 4, currentTop);
-                doc.text(order.paymentMethod.slice(0, 8), tableLeft + colWidth * 5, currentTop);
-                doc.text(order.paymentStatus.slice(0, 8), tableLeft + colWidth * 6, currentTop);
+                const netAmount = order.totalAmount - order.discount - order.couponDiscount;
+                const values = [
+                    day._id,
+                    order.orderId.toString().slice(-6),
+                    order.customerName.slice(0, 10),
+                    order.totalAmount.toFixed(2),
+                    order.discount.toFixed(2),
+                    order.couponDiscount.toFixed(2),
+                    netAmount.toFixed(2),
+                    order.paymentMethod.slice(0, 8)
+                ];
+                values.forEach((value, i) => {
+                    doc.text(value, tableLeft + colWidths.slice(0, i).reduce((a, b) => a + b, 0), currentTop);
+                });
                 currentTop += rowHeight;
 
                 if (currentTop > 700) {
@@ -233,6 +236,7 @@ exports.downloadPdfReport = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error generating PDF report' });
     }
 };
+
 
 exports.downloadExcelReport = async (req, res) => {
     try {
@@ -253,7 +257,7 @@ exports.downloadExcelReport = async (req, res) => {
                     totalOrders: { $sum: 1 },
                     totalDiscount: { $sum: '$payment.discount' },
                     totalCouponDiscount: { $sum: '$payment.couponDiscount' },
-                    netAmount: { $sum: { $subtract: ['$payment.totalAmount', { $add: ['$payment.discount', ] }] } },
+                    netAmount: { $sum: { $subtract: ['$payment.totalAmount', { $add: ['$payment.discount', '$payment.couponDiscount'] }] } },
                     orders: {
                         $push: {
                             orderId: '$_id',
@@ -261,8 +265,7 @@ exports.downloadExcelReport = async (req, res) => {
                             totalAmount: '$payment.totalAmount',
                             discount: '$payment.discount',
                             couponDiscount: '$payment.couponDiscount',
-                            paymentMethod: '$payment.paymentMethod',
-                            paymentStatus: '$payment.paymentStatus'
+                            paymentMethod: '$payment.paymentMethod'
                         }
                     }
                 }
@@ -278,23 +281,32 @@ exports.downloadExcelReport = async (req, res) => {
             { header: 'Order ID', key: 'orderId', width: 20 },
             { header: 'Customer Name', key: 'customerName', width: 20 },
             { header: 'Total Amount', key: 'totalAmount', width: 15 },
+            { header: 'Discount', key: 'discount', width: 15 },
+            { header: 'Coupon Discount', key: 'couponDiscount', width: 15 },
             { header: 'Net Amount', key: 'netAmount', width: 15 },
-            { header: 'Payment Method', key: 'paymentMethod', width: 15 },
-            { header: 'Payment Status', key: 'paymentStatus', width: 15 }
+            { header: 'Payment Method', key: 'paymentMethod', width: 15 }
         ];
 
         salesData.forEach(day => {
             day.orders.forEach(order => {
-                const netAmount = order.totalAmount - order.discount;
+                const netAmount = order.totalAmount - order.discount - order.couponDiscount;
                 worksheet.addRow({
                     date: day._id,
                     orderId: order.orderId,
                     customerName: order.customerName,
                     totalAmount: order.totalAmount,
+                    discount: order.discount,
+                    couponDiscount: order.couponDiscount,
                     netAmount: netAmount,
-                    paymentMethod: order.paymentMethod,
-                    paymentStatus: order.paymentStatus
+                    paymentMethod: order.paymentMethod
                 });
+            });
+        });
+
+        worksheet.eachRow({ includeEmpty: false }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: false }, function(cell, colNumber) {
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.font = { size: 10 };
             });
         });
 

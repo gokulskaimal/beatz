@@ -81,7 +81,7 @@
                                             </div>
                                             <div>
                                                 <label for="edit-street-<%=address._id%>" class="sr-only">Street</label>
-                                                <input type="text" id="edit-street-<%=address._id%>" name="street" placeholder="Street" value="<%= address.street %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
+                                                <input type="text" id="edit-street-<%=address._id%>" name="street" placeholder="Street/H.Name" value="<%= address.street %>" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                             </div>
                                             <div>
                                                 <label for="edit-city-<%=address._id%>" class="sr-only">City</label>
@@ -141,7 +141,7 @@
                                 </div>
                                 <div>
                                     <label for="street" class="sr-only">Street</label>
-                                    <input type="text" id="street" name="street" placeholder="Street" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
+                                    <input type="text" id="street" name="street" placeholder="Street/H.Name" class="bg-gray-900 border border-gray-800 p-2 rounded w-full text-white">
                                     <p id="streetError" class="text-red-500 text-sm text-center"></p>
                                 </div>
                                 <div>
@@ -230,12 +230,12 @@
                                         <div>
                                             <h4>
                                                 <span id="original-price-<%=item.product._id%>" class="text-gray-400 line-through" data-base-price="<%= item.product.price %>">
-                                                    <span>&#8377;</span><%= Math.round(item.product.price * item.quantity) %>
+                                                    <span>&#8377;</span><%=Math.round( (item.product.price * item.quantity).toFixed(2)) %>
                                                 </span>
                                                 <span id="discount-price-<%=item.product._id%>" class="text-lg font-bold ml-2 text-white" data-base-price="<%= item.finalPrice %>">
-                                                    <span class="text-red-500">&#8377;</span><%= Math.round(item.finalPrice * item.quantity) %>
+                                                    <span class="text-red-500">&#8377;</span><%= Math.round((item.finalPrice * item.quantity).toFixed(2)) %>
                                                 </span>
-                                                <span class="text-green-500 font-semibold ml-2"><%= Math.round(item.product.discount) %>% off</span>
+                                                <span class="text-green-500 font-semibold ml-2"><%= item.product.discount.toFixed(2) %>% off</span>
                                             </h4>
 
                                             <h3 class="text-gray-400 font-semibold text-sm">
@@ -263,17 +263,17 @@
                     <% } %>
                 </div>
                 <ul class="text-gray-300 space-y-4 mt-4">
-                    <li class="flex flex-wrap gap-4 text-sm">Subtotal (<%=totalItems%> <%= totalItems > 1 ? 'items' :' item' %>)<span class="ml-auto font-semibold"><span class=" text-red-500">&#8377;</span><span id="totalPrice"><%= Math.round(totalPrice) %></span></span></li>
-                    <li class="flex flex-wrap gap-4 text-sm">Product Discount <span class="ml-auto font-semibold text-green-500"><i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span class="product-discount"><%= Math.round(discount) %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Subtotal (<%=totalItems%> <%= totalItems > 1 ? 'items' :' item' %>)<span class="ml-auto font-semibold"><span class=" text-red-500">&#8377;</span><span id="totalPrice"><%= totalPrice.toFixed(2) %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Product Discount <span class="ml-auto font-semibold text-green-500"><i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span class="product-discount"><%= discount.toFixed(2) %></span></span></li>
                     <li id="couponDiscountLine" class="flex flex-wrap gap-4 text-sm <%= !appliedCoupon ? 'hidden' : '' %>">
                         Coupon Discount 
                         <span class="ml-auto font-semibold text-green-500">
-                            <i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span id="couponDiscountAmount"><%= appliedCoupon ? appliedCoupon.discount : 0 %></span>
+                            <i class="fa-solid fa-minus fa-sm" aria-hidden="true"></i> &#8377;<span id="couponDiscountAmount"><%= appliedCoupon ? appliedCoupon.discount.toFixed(2) : '0.00' %></span>
                         </span>
                     </li>
                     <li class="flex flex-wrap gap-4 text-sm">Delivery Charges<span class="ml-auto font-semibold text-green-500"><span class="line-through text-gray-500"><span>&#8377;</span>40</span> Free</span></li>
                     <hr class="border-gray-700" />
-                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total Amount<span class="ml-auto "><span class="text-red-500">&#8377;</span><span id="totalDiscountPrice"><%= Math.round(totalDiscountPrice) %></span></span></li>
+                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total Amount<span class="ml-auto "><span class="text-red-500">&#8377;</span><span id="totalDiscountPrice"><%= totalDiscountPrice.toFixed(2) %></span></span></li>
                 </ul>
 
                 <!-- Coupon Section -->
@@ -299,7 +299,7 @@
                     <button type="button" class="text-sm px-4 py-2.5 w-full font-semibold tracking-wide bg-yellow-600 hover:bg-yellow-700 text-black rounded-md" onclick="placeOrder()">PLACE ORDER</button>
                 </div>
                 <div class="w-full py-2">
-                    <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= Math.round(discount) + (appliedCoupon ? Math.round(appliedCoupon.discount) : 0) %></span> on this order</h3>
+                    <h3 class="text-center text-green-500 font-semibold">You will save ₹<span class="total-discount"><%= (discount + (appliedCoupon ? appliedCoupon.discount : 0)).toFixed(2) %></span> on this order</h3>
                 </div>
             </div>
         </div>
@@ -560,15 +560,15 @@
             const result = await response.json();
 
             if (response.ok) {
-                document.getElementById('couponMessage').textContent = `Coupon applied successfully! You saved ₹${result.discount || 0}`;
+                document.getElementById('couponMessage').textContent = `Coupon applied successfully! You saved ₹${parseFloat(result.couponDiscount || 0).toFixed(2)}`;
                 document.getElementById('couponMessage').className = 'mt-2 text-sm text-green-500';
-                document.getElementById('totalDiscountPrice').textContent = (result.newTotal || 0).toFixed(2);
-                document.getElementById('couponDiscountAmount').textContent = (result.discount || 0).toFixed(2);
+                document.getElementById('totalDiscountPrice').textContent = parseFloat(result.newTotal || 0).toFixed(2);
+                document.getElementById('couponDiscountAmount').textContent = parseFloat(result.couponDiscount || 0).toFixed(2);
                 document.getElementById('couponDiscountLine').classList.remove('hidden');
                 const totalDiscountElement = document.querySelector('.total-discount');
                 if (totalDiscountElement) {
                     const productDiscount = parseFloat(document.querySelector('.product-discount').textContent);
-                    totalDiscountElement.textContent = (productDiscount + (result.discount || 0)).toFixed(2);
+                    totalDiscountElement.textContent = (productDiscount + parseFloat(result.couponDiscount || 0)).toFixed(2);
                 }
                 document.getElementById('removeCouponBtn').classList.remove('hidden');
                 document.getElementById('couponSelect').disabled = true;
@@ -596,9 +596,9 @@
             if (response.ok) {
                 document.getElementById('couponMessage').textContent = 'Coupon removed successfully';
                 document.getElementById('couponMessage').className = 'mt-2 text-sm text-green-500';
-                document.getElementById('totalDiscountPrice').textContent = result.newTotal.toFixed(2);
+                document.getElementById('totalDiscountPrice').textContent = parseFloat(result.newTotal).toFixed(2);
                 document.getElementById('couponDiscountLine').classList.add('hidden');
-                document.getElementById('couponDiscountAmount').textContent = '0';
+                document.getElementById('couponDiscountAmount').textContent = '0.00';
                 const totalDiscountElement = document.querySelector('.total-discount');
                 if (totalDiscountElement) {
                     const productDiscount = parseFloat(document.querySelector('.product-discount').textContent);
@@ -623,14 +623,11 @@
         try {
             const response = await fetch('/user/wallet-balance');
             const data = await response.json();
-            document.getElementById('walletBalance').textContent = data.balance.toFixed(2);
+            document.getElementById('walletBalance').textContent = parseFloat(data.balance).toFixed(2);
         } catch (error) {
             console.error('Error fetching wallet balance:', error);
         }
     }
-
-
-
 
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('addAddressForm').addEventListener('submit', async function(e) {

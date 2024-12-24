@@ -25,7 +25,7 @@
     @layer utilities {
         .bg-darker { background-color: #0a0a0a; }
     }
-</style>
+  </style>
 </head>
 
 <body class="min-h-screen bg-black text-white">
@@ -38,14 +38,14 @@
     <!-- Main Content -->
     <div class="flex-1 p-8 bg-darker overflow-y-auto">
       <div class="flex justify-between items-center mb-8">
-        <!-- <button
-          class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors hidden duration-200">
-          Add New Category
-        </button> -->
+        <h1 class="text-2xl font-bold">Customers</h1>
         <div class="relative">
           <input
+            id="searchInput"
             class="w-64 bg-[#111] border-none text-white placeholder-gray-500 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-            placeholder="Search for users" />
+            placeholder="Search for users"
+            value="<%= search %>"
+          />
         </div>
       </div>
       <!-- Users Table -->
@@ -62,26 +62,18 @@
             </tr>
           </thead>
           <tbody>
-            <% users.forEach((user, index)=> { %>
+            <% users.forEach((user, index) => { %>
               <tr class="border-b border-gray-800">
-                <td class="p-4">
-                  <%= index + 1 %>
-                </td>
-                <td class="p-4">
-                  <%= user.firstName %>
-                </td>
-                <td class="p-4">
-                  <%= user.email %>
-                </td>
-                <td class="p-4">
-                  <%= user.phone %>
-                </td>
+                <td class="p-4"><%= (currentPage - 1) * 10 + index + 1 %></td>
+                <td class="p-4"><%= user.firstName %></td>
+                <td class="p-4"><%= user.email %></td>
+                <td class="p-4"><%= user.phone %></td>
                 <td class="p-4">
                   <% if (user.isBlocked) { %>
-                    <span class="text-red-500  font-semibold px-2 py-1 rounded">Blocked</span>
-                    <% } else { %>
-                      <span class=" text-green-500  font-semibold px-2 py-1 rounded">Active</span>
-                      <% } %>
+                    <span class="text-red-500 font-semibold px-2 py-1 rounded">Blocked</span>
+                  <% } else { %>
+                    <span class="text-green-500 font-semibold px-2 py-1 rounded">Active</span>
+                  <% } %>
                 </td>
                 <td class="p-4">
                   <div class="flex gap-2">
@@ -92,32 +84,44 @@
                   </div>
                 </td>
               </tr>
-              <% }) %>
+            <% }) %>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-6 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+          <% if (currentPage > 1) { %>
+            <a href="/admin/users?page=<%= currentPage - 1 %>&search=<%= search %>" class="px-3 py-2 bg-gray-800 text-white rounded-l-md hover:bg-gray-700">Previous</a>
+          <% } %>
+          <% for(let i = 1; i <= totalPages; i++) { %>
+            <a href="/admin/users?page=<%= i %>&search=<%= search %>" class="px-3 py-2 <%= currentPage === i ? 'bg-orange-500' : 'bg-gray-800' %> text-white hover:bg-orange-600"><%= i %></a>
+          <% } %>
+          <% if (currentPage < totalPages) { %>
+            <a href="/admin/users?page=<%= currentPage + 1 %>&search=<%= search %>" class="px-3 py-2 bg-gray-800 text-white rounded-r-md hover:bg-gray-700">Next</a>
+          <% } %>
+        </nav>
       </div>
     </div>
   </div>
 
- 
-
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const message = document.getElementById("message").value;
-        if (message) {
-            const messageBox = document.createElement("div");
-            messageBox.textContent = message;
-            messageBox.className = "bg-green-500 text-white p-4 rounded mb-4";
-            document.body.insertBefore(messageBox, document.body.firstChild);
+      const searchInput = document.getElementById("searchInput");
+      let searchTimeout;
 
-            // Auto-hide the message after 5 seconds
-            setTimeout(() => {
-                messageBox.remove();
-            }, 5000);
-        }
+      searchInput.addEventListener("input", () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          const searchTerm = searchInput.value;
+          window.location.href = `/admin/users?search=${encodeURIComponent(searchTerm)}`;
+        }, 500);
+      });
     });
+
     async function toggleBlock(userId, action) {
-      const url = `/admin/users/${action}/${userId}`;
+      const url = `/admin/users/${action.toLowerCase()}/${userId}`;
 
       try {
         const response = await fetch(url, { method: 'PUT' });
@@ -125,7 +129,7 @@
 
         if (result.success) {
           Swal.fire('Success!', result.message, 'success').then(() => {
-            location.reload(); // Reload the page to reflect changes
+            location.reload();
           });
         } else {
           Swal.fire('Error!', result.message, 'error');
@@ -135,12 +139,8 @@
         Swal.fire('Error!', 'Something went wrong.', 'error');
       }
     }
-
-    async function paginate(page) {
-      const search = document.getElementById('search').value;
-      window.location.href = `/admin/users?page=${page}&search=${search}`;
-    }
   </script>
 </body>
 
 </html>
+

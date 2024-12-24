@@ -144,7 +144,7 @@ exports.validateCart = async (req, res) => {
       // Fetch available coupons
       const availableCoupons = await Coupon.find({
         expiryDate: { $gt: new Date() },
-        isActive: true,
+        isActive: true, 
         $or: [
           { minimumPurchaseAmount: { $lte: totalDiscountPrice } },
           { minimumPurchaseAmount: { $exists: false } }

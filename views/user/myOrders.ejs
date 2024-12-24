@@ -129,7 +129,7 @@
                                         <p class="text-sm text-gray-300">Price: <span class="font-semibold text-red-500">₹</span>${item.price.toFixed(2)}</p>
                                         <p class="text-sm text-gray-300">Status: ${item.status}</p>
                                     </div>
-                                    <p class="text-sm font-semibold"><span class="font-bold text-red-500" >₹</span>${(item.quantity * item.discountPrice).toFixed(2)}</p>
+                                    <p class="text-sm font-semibold"><span class="font-bold text-red-500" >₹</span>${Math.round((item.quantity * item.discountPrice)).toFixed(2)}</p>
                                     ${item.status === 'Pending' || item.status === 'Processing' ?
                                         `<button onclick="cancelItem('${order._id}', '${item._id}')" class="bg-red-600 hover:bg-red-700 text-black font-semibold px-2 py-1 rounded text-sm">
                                             Cancel
@@ -216,7 +216,7 @@
                                     <div>
                                         <p class="font-semibold">${item.productName}</p>
                                         <p>Quantity: ${item.quantity}</p>
-                                        <p>Price: <span class="font-bold text-red-500" >₹</span>${item.discountPrice.toFixed(2)}</p>
+                                        <p>Price: <span class="font-bold text-red-500" >₹</span>${Math.round(item.discountPrice).toFixed(2)}</p>
                                         <p>Status: ${item.status}</p>
                                     </div>
                                 </div>

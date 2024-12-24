@@ -169,7 +169,7 @@ exports.placeOrder = async (req, res) => {
                         transactions: {
                             amount: discountPrice,
                             type: 'debit',
-                            description: `Payment for order ${savedOrder._id}`,
+                            description: `Payment for ORD.No: ${savedOrder._id.toString().slice(-6)}`,
                             orderId: savedOrder._id
                         }
                     }
@@ -336,7 +336,7 @@ exports.cancelOrderItem = async (req, res) => {
                         transactions: {
                             amount: refundAmount,
                             type: 'credit',
-                            description: `Refund for cancelled item in order ${order._id}`,
+                            description: `Refund for cancelled item in ORD.NO: ${order._id.toString().slice(-6)}`,
                             orderId: order._id
                         }
                     }
@@ -518,7 +518,7 @@ exports.generateInvoice = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        const doc = new PDFDocument();
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
         const filename = `invoice-${orderId}.pdf`;
 
         res.setHeader('Content-Type', 'application/pdf');
@@ -526,37 +526,86 @@ exports.generateInvoice = async (req, res) => {
 
         doc.pipe(res);
 
+        // Helper function to draw a line
+        const drawLine = (y) => {
+            doc.moveTo(50, y)
+               .lineTo(550, y)
+               .stroke();
+        };
+
         // Add content to PDF
-        doc.fontSize(18).text('Invoice', { align: 'center' });
+        doc.fontSize(20).text('Invoice', { align: 'center' });
         doc.moveDown();
-        doc.fontSize(12).text(`Order ID: ${order._id}`);
-        doc.text(`Date: ${format(order.orderDate, 'MMMM dd, yyyy')}`);
+
+        // Company details (replace with your company details)
+        doc.fontSize(10).text('Beatz', { align: 'left' });
+
+        doc.moveDown();
+
+        // Invoice details
+        doc.fontSize(10).text(`Invoice Number: INV-${order._id.toString().slice(-6)}`, { align: 'right' });
+        doc.text(`Date: ${format(order.orderDate, 'MMMM dd, yyyy')}`, { align: 'right' });
         doc.moveDown();
 
         // Customer details
-        doc.text(`Customer: ${order.customer.customerName}`);
-        doc.text(`Email: ${order.customer.customerEmail}`);
-        doc.moveDown();
+        // doc.fontSize(12).text('Bill To:');
+        // doc.fontSize(10).text(order.customer.customerName);
+        // doc.text(order.customer.customerEmail);
+        // doc.moveDown();
 
         // Shipping Address
-        doc.text('Shipping Address:');
-        doc.text(order.customer.shippingAddress.name);
+        doc.fontSize(12).text('Ship To:');
+        doc.fontSize(10).text(order.customer.shippingAddress.name);
         doc.text(order.customer.shippingAddress.street);
         doc.text(`${order.customer.shippingAddress.city}, ${order.customer.shippingAddress.state} ${order.customer.shippingAddress.zipCode}`);
         doc.text(order.customer.shippingAddress.country);
         doc.moveDown();
 
-        // Order Items
-        doc.text('Order Items:');
-        order.items.forEach(item => {
-            doc.text(`${item.productName} - Quantity: ${item.quantity} - Price: ₹${item.discountPrice.toFixed(2)}`);
+        // Order Items Table
+        const tableTop = 300;
+        const descriptionX = 100;
+        const quantityX = 350;
+        const priceX = 400;
+        const amountX = 500;
+
+        doc.font('Helvetica-Bold');
+        doc.text('Description', descriptionX, tableTop);
+        doc.text('Qty', quantityX, tableTop, { width: 50, align: 'center' });
+        doc.text('Price', priceX, tableTop, { width: 70, align: 'right' });
+        doc.text('Amount', amountX, tableTop, { width: 70, align: 'right' });
+
+        drawLine(tableTop + 15);
+        doc.font('Helvetica');
+
+        let position = 0;
+        order.items.forEach((item, index) => {
+            position = tableTop + 25 + (index * 25);
+            
+            doc.text(item.productName, descriptionX, position, { width: 200 });
+            doc.text(item.quantity.toString(), quantityX, position, { width: 50, align: 'center' });
+            doc.text(`₹${item.discountPrice.toFixed(2)}`, priceX, position, { width: 70, align: 'right' });
+            doc.text(`₹${(item.discountPrice * item.quantity).toFixed(2)}`, amountX, position, { width: 70, align: 'right' });
         });
-        doc.moveDown();
+
+        drawLine(position + 20);
 
         // Total
-        doc.text(`Subtotal: ₹${order.payment.totalAmount.toFixed(2)}`);
-        doc.text(`Discount: ₹${order.payment.discount.toFixed(2)}`);
-        doc.text(`Total: ₹${order.payment.discountPrice.toFixed(2)}`);
+        const totalPosition = position + 35;
+        doc.font('Helvetica-Bold');
+        doc.text('Subtotal:', 400, totalPosition);
+        doc.text(`₹${order.payment.totalAmount.toFixed(2)}`, amountX, totalPosition, { width: 70, align: 'right' });
+
+        doc.text('Discount:', 400, totalPosition + 20);
+        doc.text(`₹${order.payment.discount.toFixed(2)}`, amountX, totalPosition + 20, { width: 70, align: 'right' });
+
+        drawLine(totalPosition + 35);
+
+        doc.fontSize(12);
+        doc.text('Total:', 400, totalPosition + 45);
+        doc.text(`₹${order.payment.discountPrice.toFixed(2)}`, amountX, totalPosition + 45, { width: 70, align: 'right' });
+
+        // Footer
+        doc.fontSize(10).text('Thank you for your business!', 50, 700, { align: 'center' });
 
         doc.end();
 
@@ -565,7 +614,6 @@ exports.generateInvoice = async (req, res) => {
         res.status(500).json({ message: 'Failed to generate invoice' });
     }
 };
-
 
 
 module.exports = exports;

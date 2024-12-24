@@ -81,6 +81,7 @@
                 <div class="space-y-4">
                     <input type="text" id="name" name="name" placeholder="Name" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="nameError" class="text-xs text-red-500 hidden">Name is required and must be alphabetic and between 2 and 50 characters.</p>
                     <select id="addressType" name="addressType" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
                         <option value="" disabled selected>Select Type</option>
@@ -88,18 +89,25 @@
                         <option value="Work">Work</option>
                         <option value="Other">Other</option>
                     </select>
-                    <input type="text" id="street" name="street" placeholder="Street" required
+                    <p id="addressTypeError" class="text-xs text-red-500 hidden">Address type is required.</p>
+                    <input type="text" id="street" name="street" placeholder="Street/H.Name" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="streetError" class="text-xs text-red-500 hidden">Name is required and must be between 5 and 100 characters.</p>
                     <input type="text" id="city" name="city" placeholder="City" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="cityError" class="text-xs text-red-500 hidden">City is required and must be alphabetic and between 2 and 50 characters.</p>
                     <input type="text" id="state" name="state" placeholder="State" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="stateError" class="text-xs text-red-500 hidden">State is required and must be alphabetic and between 2 and 50 characters.</p>
                     <input type="text" id="zipCode" name="zipCode" placeholder="Zip Code" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="zipCodeError" class="text-xs text-red-500 hidden">Zip Code is required and must be between 5 and 10 characters.</p>
                     <input type="text" id="country" name="country" placeholder="Country" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="countryError" class="text-xs text-red-500 hidden">Country is required and must be alphabetic and between 2 and 50 characters.</p>
                     <input type="tel" id="phone" name="phone" placeholder="Phone Number" required
                         class="w-full bg-gray-900 border-b border-gray-600 px-3 py-2 focus:border-gold text-white">
+                    <p id="phoneError" class="text-xs text-red-500 hidden">Phone number is required and must be a valid 10-digit number.</p>
                 </div>
                 <div class="mt-6 flex justify-end space-x-4">
                     <button type="button" onclick="closeAddressModal()"
@@ -155,6 +163,90 @@
         const formData = new FormData(event.target);
         const addressId = formData.get('addressId');
         const isEdit = !!addressId;
+
+        // Client-side validation
+        let valid = true;
+
+        const name = document.getElementById("name").value.trim();
+        const nameError = document.getElementById("nameError");
+        if (!name || !/^[a-zA-Z\s]{2,50}$/.test(name)) {
+            nameError.classList.remove("hidden");
+            valid = false;
+        } else {
+            nameError.classList.add("hidden");
+        }
+
+        const addressType = document.getElementById("addressType").value.trim();
+        const addressTypeError = document.getElementById("addressTypeError");
+        if (!addressType) {
+            addressTypeError.classList.remove("hidden");
+            valid = false;
+        } else {
+            addressTypeError.classList.add("hidden");
+        }
+
+        const street = document.getElementById("street").value.trim();
+        const streetError = document.getElementById("streetError");
+        if (!street || street.length < 5 || street.length > 100) {
+            streetError.classList.remove("hidden");
+            valid = false;
+        } else {
+            streetError.classList.add("hidden");
+        }
+
+        const city = document.getElementById("city").value.trim();
+        const cityError = document.getElementById("cityError");
+        if (!city || !/^[a-zA-Z\s]{2,50}$/.test(city)) {
+            cityError.classList.remove("hidden");
+            valid = false;
+        } else {
+            cityError.classList.add("hidden");
+        }
+
+        const state = document.getElementById("state").value.trim();
+        const stateError = document.getElementById("stateError");
+        if (!state || !/^[a-zA-Z\s]{2,50}$/.test(state)) {
+            stateError.classList.remove("hidden");
+            valid = false;
+        } else {
+            stateError.classList.add("hidden");
+        }
+
+        const zipCode = document.getElementById("zipCode").value.trim();
+        const zipCodeError = document.getElementById("zipCodeError");
+        if (!zipCode || zipCode.length < 5 || zipCode.length > 10) {
+            zipCodeError.classList.remove("hidden");
+            valid = false;
+        } else {
+            zipCodeError.classList.add("hidden");
+        }
+
+        const country = document.getElementById("country").value.trim();
+        const countryError = document.getElementById("countryError");
+        if (!country || !/^[a-zA-Z\s]{2,50}$/.test(country)) {
+            countryError.classList.remove("hidden");
+            valid = false;
+        } else {
+            countryError.classList.add("hidden");
+        }
+
+        const phone = document.getElementById("phone").value.trim();
+        const phoneError = document.getElementById("phoneError");
+        if (!phone || !/^\d{10}$/.test(phone)) {
+            phoneError.classList.remove("hidden");
+            valid = false;
+        } else {
+            phoneError.classList.add("hidden");
+        }
+
+        if (!valid) {
+            Swal.fire({
+                icon: "error",
+                title: "Invalid Input",
+                text: "Please fix the errors in the form.",
+            });
+            return;
+        }
 
         try {
             const response = await fetch(isEdit ? `/user/address/edit/${addressId}` : '/user/address/add', {
@@ -239,21 +331,21 @@
         document.getElementById('addressForm').addEventListener('submit', handleAddressFormSubmit);
     });
     document.addEventListener('DOMContentLoaded', () => {
-                        const userIcon = document.getElementById('user-icon');
-                        const userDropdown = document.getElementById('user-dropdown');
+        const userIcon = document.getElementById('user-icon');
+        const userDropdown = document.getElementById('user-dropdown');
 
-                        // Toggle the dropdown menu visibility on click
-                        userIcon.addEventListener('click', () => {
-                            userDropdown.classList.toggle('hidden');
-                        });
+        // Toggle the dropdown menu visibility on click
+        userIcon.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
 
-                        // Hide the dropdown when clicking outside
-                        document.addEventListener('click', (e) => {
-                            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
-                                userDropdown.classList.add('hidden');
-                            }
-                        });
-                    });
+        // Hide the dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    });
     </script>
 </body>
 

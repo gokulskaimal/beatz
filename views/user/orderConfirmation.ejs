@@ -68,7 +68,6 @@
                 <div>
                     <h2 class="text-xl font-semibold mb-3 pb-2 border-b border-dark-700 text-blue-300">Shipping Address</h2>
                     <div class="space-y-1 text-sm text-dark-200">
-                        <p><%= order.customer.customerName %></p>
                         <p><%= order.customer.shippingAddress.name %></p>
                         <p><%= order.customer.shippingAddress.street %></p>
                         <p><%= order.customer.shippingAddress.city %>, <%= order.customer.shippingAddress.state %> <%= order.customer.shippingAddress.zipCode %></p>

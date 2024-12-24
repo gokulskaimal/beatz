@@ -137,7 +137,7 @@ exports.handleReturnRequest = async (req, res) => {
                         transactions: {
                             amount: refundAmount,
                             type: 'credit',
-                            description: `Refund for returned item in order ${order._id}`,
+                            description: `Refund for returned item in ORD.NO: ${order._id.toString().slice(-6)}`,
                             orderId: order._id
                         }
                     }

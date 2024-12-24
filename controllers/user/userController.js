@@ -1,3 +1,4 @@
+const { body, validationResult } = require('express-validator');
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
 const Offer = require('../../models/offerModel');
@@ -294,46 +295,69 @@ exports.getProfile = async (req, res) => {
     }
 };
 
-exports.updateProfile = async (req, res) => {
-    let cartItemCount = 0;
-    if (req.user) {
-        const cart = await Cart.findOne({ userId: req.user._id });
-        if (cart) {
-            cartItemCount = cart.items.length
+exports.updateProfile = [
+    // Validation and sanitization
+    body('firstName')
+        .trim()
+        .isAlpha().withMessage('First name must be alphabetic.')
+        .isLength({ min: 2, max: 15 }).withMessage('First name must be between 2 and 30 characters.')
+        .notEmpty().withMessage('First name is required.'),
+    body('lastName')
+        .trim()
+        .isAlpha().withMessage('Last name must be alphabetic.')
+        .isLength({ min: 2, max: 15 }).withMessage('Last name must be between 2 and 30 characters.')
+        .notEmpty().withMessage('Last name is required.'),
+    body('phone')
+        .trim()
+        .isNumeric().withMessage('Phone number must be numeric.')
+        .isLength({ min: 10, max: 10 }).withMessage('Phone number must be 10 digits long.')
+        .notEmpty().withMessage('Phone number is required.'),
+
+    async (req, res) => {
+        let cartItemCount = 0;
+        if (req.user) {
+            const cart = await Cart.findOne({ userId: req.user._id });
+            if (cart) {
+                cartItemCount = cart.items.length;
+            }
         }
-    }
-    try {
-        const { firstName, lastName, phone } = req.body;
-        const userId = req.user._id;
-        if (!firstName || !lastName || !phone) {
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
             return res.status(400).render('user/profile', {
-                user: req.body,
-                message: 'All fields are required!',
+                user: req.user,
+                message: errors.array().map(error => error.msg).join(', '),
+                cartItemCount
             });
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { firstName, lastName, phone },
-            { new: true }
-        ).select('-password');
+        try {
+            const { firstName, lastName, phone } = req.body;
+            const userId = req.user._id;
 
-        res.render('user/profile', {
-            user: updatedUser,
-            message: 'Profile updated successfully!',
-            user: req.user,
-            cartItemCount
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).render('user/profile', {
-            user: req.body,
-            message: 'An error occurred while updating the profile.',
-            user: req.user,
-            cartItemCount
-        });
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { firstName, lastName, phone },
+                { new: true }
+            ).select('-password');
+
+            // Update the req.user object with the updated user data
+            req.user = updatedUser;
+
+            res.render('user/profile', {
+                user: updatedUser,
+                message: 'Profile updated successfully!',
+                cartItemCount
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).render('user/profile', {
+                user: req.user,
+                message: 'An error occurred while updating the profile.',
+                cartItemCount
+            });
+        }
     }
-};
+];
 
 module.exports = exports;
-

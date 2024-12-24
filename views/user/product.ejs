@@ -328,14 +328,14 @@
                             console.log('Response:', result); // Add this line to log the response
 
                             if (response.ok) {
-                                if (result.status === 'success') {
+                                if (result.success) {
                                     const icon = result.message.includes('removed') ? 'info' : 'success';
                                     Swal.fire({
                                         icon: icon,
                                         title: 'Success!',
                                         text: result.message,
                                     });
-                                } else if (result.status === 'error' && result.message === 'Unauthorized: User not logged in.') {
+                                } else if (result.message === 'User not authenticated') {
                                     window.location.href = '/auth/login';
                                 } else {
                                     throw new Error(result.message);
